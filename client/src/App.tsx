@@ -17,22 +17,17 @@ function App() {
       const response = await fetch(
         "https://mlb-match-maker-server.vercel.app/api/scraper"
       );
-    const contentType = response.headers.get("content-type");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("data", data);
 
-    if (!contentType || !contentType.includes("application/json")) {
-      const textResponse = await response.text();
-      console.error("Response is not JSON:", textResponse);
-      throw new Error("Response is not JSON");
-    }
-
-    const data = await response.json();
-    console.log('data', data);
-
-    const sortedData = data.sort((a: Team, b: Team) => {
-      const scoreA = a.score === "E" ? 0 : Number(a.score);
-      const scoreB = b.score === "E" ? 0 : Number(b.score);
-      return scoreA - scoreB;
-    });
+      const sortedData = data.sort((a: Team, b: Team) => {
+        const scoreA = a.score === "E" ? 0 : Number(a.score);
+        const scoreB = b.score === "E" ? 0 : Number(b.score);
+        return scoreA - scoreB;
+      });
 
       setTeams(sortedData);
       setLoading(false);

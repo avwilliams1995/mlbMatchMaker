@@ -1,6 +1,5 @@
 import { Router } from "express";
 import ApiController from "./controller.js";
-
 const router = Router();
 
 router.get("/dailyFetch", (req, res) => {
@@ -8,7 +7,7 @@ router.get("/dailyFetch", (req, res) => {
 });
 
 router.get("/scraper", ApiController.fetchData, (req, res) => {
-  res.status(200).json(res.locals.data); // Ensuring JSON response
+  res.status(200).send(res.locals.data);
 });
 
 export default router;

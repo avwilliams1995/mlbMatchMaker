@@ -15,14 +15,10 @@ const ApiController = {
 
       pythonProcess.stdout.on("end", () => {
         try {
-          // Log the entire dataString received
-          console.log(`full dataString: ${dataString}`);
-
           // Remove any leading/trailing whitespace and non-JSON characters
           const jsonString = dataString.trim().replace(/^200\s*/, "");
-          console.log(`cleaned jsonString: ${jsonString}`);
+          console.log(`jsonString: ${jsonString}`);
 
-          // Parse the cleaned JSON string
           const result = JSON.parse(jsonString);
           console.log("parsed result", result);
           res.locals.data = result; // Storing the data in res.locals to be used by other middleware if needed

@@ -15,7 +15,7 @@ function App() {
     setLoading(true);
     try {
       const response = await fetch(
-        "https://mlb-match-maker-server.vercel.app//api/scraper"
+        "https://mlb-match-maker-server.vercel.app/api/scraper"
       );
     const contentType = response.headers.get("content-type");
 

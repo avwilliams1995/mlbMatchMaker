@@ -5,12 +5,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const corsOptions = {
-  origin: "https://golf-maker.vercel.app", // your frontend domain
+  origin: 'https://golf-maker.vercel.app', // your frontend domain
   optionsSuccessStatus: 200,
 };
 
+app.use(cors(corsOptions)); // Apply CORS middleware
 app.use(express.json());
-app.use(cors(corsOptions));
+
 app.use("/api", router);
 
 // Handles global errors v

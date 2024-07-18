@@ -15,7 +15,7 @@ function App() {
     setLoading(true);
     try {
       const response = await fetch(
-        "https://golf-maker.vercel.app/api/scraper"
+        "/api/scraper"
       );
       const data = await response.json();
       console.log('data', data)

@@ -14,7 +14,9 @@ function App() {
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/scraper");
+      const response = await fetch(
+        "https://mlb-match-maker-server.vercel.app//api/scraper"
+      );
     const contentType = response.headers.get("content-type");
 
     if (!contentType || !contentType.includes("application/json")) {

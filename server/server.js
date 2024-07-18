@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(cors({ origin: "*" }));
 app.use("/api", router);
 
-// Handles global errors
+// Handles global errors v
 app.use((err, req, res, next) => {
   res.status(500).json({ message: err.message });
 });

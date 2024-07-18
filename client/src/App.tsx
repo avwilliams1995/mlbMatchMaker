@@ -31,6 +31,7 @@ function App() {
         const scoreB = b.score === "E" ? 0 : Number(b.score);
         return scoreA - scoreB;
       });
+
       setTeams(sortedData);
       setLoading(false);
     } catch (error) {

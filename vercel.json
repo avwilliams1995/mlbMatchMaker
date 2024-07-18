@@ -20,6 +20,10 @@
     {
       "src": "/(.*)",
       "dest": "/client/build/$1"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/server/server.js"
     }
   ]
 }

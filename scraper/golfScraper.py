@@ -25,7 +25,7 @@ def scrape_golf_scores():
     ]
 
     response = requests.get(url, headers=headers)
-    print(response.status_code)
+    print(response.status_code, " ")
     if response.status_code != 200:
         return {"error": f'Failed to retrieve the golf stats page. Status code: {response.status_code}'}
 

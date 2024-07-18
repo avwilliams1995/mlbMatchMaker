@@ -14,10 +14,12 @@ function App() {
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/scraper`);
+      const response = await fetch("/api/scraper");
       const contentType = response.headers.get("content-type");
 
       if (!contentType || !contentType.includes("application/json")) {
+        const textResponse = await response.text();
+        console.error("Response is not JSON:", textResponse);
         throw new Error("Response is not JSON");
       }
 
@@ -29,7 +31,6 @@ function App() {
         const scoreB = b.score === "E" ? 0 : Number(b.score);
         return scoreA - scoreB;
       });
-
       setTeams(sortedData);
       setLoading(false);
     } catch (error) {

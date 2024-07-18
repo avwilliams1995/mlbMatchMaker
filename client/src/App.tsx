@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import "./App.css";
 
 interface Team {
   name: string;
@@ -14,22 +14,26 @@ function App() {
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        "/api/scraper"
-      );
+      const response = await fetch(`api/scraper`);
+      const contentType = response.headers.get("content-type");
+
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Response is not JSON");
+      }
+
       const data = await response.json();
-      console.log('data', data)
+      console.log("data", data);
 
       const sortedData = data.sort((a: Team, b: Team) => {
         const scoreA = a.score === "E" ? 0 : Number(a.score);
         const scoreB = b.score === "E" ? 0 : Number(b.score);
         return scoreA - scoreB;
       });
-      
+
       setTeams(sortedData);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching leaderboard:', error);
+      console.error("Error fetching leaderboard:", error);
     } finally {
       setLoading(false);
     }

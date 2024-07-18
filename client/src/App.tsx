@@ -14,7 +14,7 @@ function App() {
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:3000/api/scraper");
+      const response = await fetch("/api/scraper");
       const data = await response.json();
       console.log('data', data)
 

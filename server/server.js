@@ -4,6 +4,11 @@ import router from "./router.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const corsOptions = {
+  origin: "https://golf-maker.vercel.app", // your frontend domain
+  optionsSuccessStatus: 200,
+};
+
 app.use(express.json());
 app.use(cors({ origin: "*" }));
 app.use("/api", router);

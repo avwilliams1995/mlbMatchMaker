@@ -10,7 +10,7 @@ const corsOptions = {
 };
 
 app.use(express.json());
-app.use(cors({ origin: "*" }));
+app.use(cors(corsOptions));
 app.use("/api", router);
 
 // Handles global errors v

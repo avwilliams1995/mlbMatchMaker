@@ -61,9 +61,11 @@ def batter_previous_games(player_url):
         return {}
 
     soup = BeautifulSoup(response.content, 'html.parser')
+    avg_element = soup.select_one('li.flex-expand .StatBlockInner__Value')
 
     # Initialize dictionary to store hits and at-bats for the past two games
     rows = soup.find_all('tr', class_='Table__TR Table__TR--sm Table__even')
+    batting_average = avg_element.get_text(strip=True) if avg_element else '0'
 
     # Initialize dictionary to store stats for the most recent game
     game_stats = {}
@@ -74,6 +76,7 @@ def batter_previous_games(player_url):
         # Ensure there are enough cells and the first cell contains a date
         if len(cells) > 4 and '/' in cells[0].text.strip():
             game_stats = {
+                "player_avg": batting_average,
                 "date": cells[0].text.strip(),
                 "at_bats": cells[3].text.strip(),
                 "hits": cells[4].text.strip(),

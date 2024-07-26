@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 
 
 
+
 def find_urls():
     today = datetime.today()
 
@@ -134,86 +135,100 @@ def is_data_stale(timestamp):
     return True
 
 def calculate_weighted_score(obj, type="top"):
-    # Convert prevHits to float
-    # prev_hits = float(obj['prevHits'])
-    
-    # Calculate the weighted score. Will adjust later when we have ind batters avg's
-    if (type == "top"):
-        weighted_score = (0.25 * obj['prevHits']) + (0.50 * obj['avg']) + (0.25 * (obj['at_bats']))
-    else:
-        weighted_score = (0.10 * obj['prevHits']) + (0.80 * obj['avg']) + (0.10 * (obj['at_bats']))
+    try:
+        # Convert values to float for calculations
+        prev_hits = float(obj['prevHits'])
+        avg = float(obj['avg'])
+        at_bats = float(obj['at_bats'])
         
-    return weighted_score
+        overall_avg = float(obj['overall_avg'])
+        
+        # Calculate the weighted score. Will adjust later when we have individual batters' averages
+        if type == "top":
+            weighted_score = (0.25 * prev_hits) + (0.50 * avg) + (0.25 * at_bats)
+        else:
+            weighted_score = (0.10 * prev_hits) + (0.60 * avg) + (0.05 * at_bats) + (0.25 * overall_avg)
+        
+        return weighted_score
+    except Exception as e:
+        print(f"Error in calculate_weighted_score: {e}")
+        print(f"Object causing error: {obj}")
+        raise
 
 if __name__ == '__main__':
-        scraped_data = find_urls()
-        top_candidates = []
-        flattened_data = []
-        current_players = []
-        for game in scraped_data:
-            game_url = game['url']
-            for pitcher in game['pitcher_data']:
-                pitcher_name = pitcher['name']
-                era = pitcher['era']
-                loc_era = pitcher['loc_era']
-                vs_right = pitcher['vs_right']
-                vs_left = pitcher['vs_left']
+    scraped_data = find_urls()
+    top_candidates = []
+    flattened_data = []
+    current_players = []
+    
+    
+    for game in scraped_data:
+        game_url = game['url']
+        for pitcher in game['pitcher_data']:
+            pitcher_name = pitcher['name']
+            era = pitcher['era']
+            loc_era = pitcher['loc_era']
+            vs_right = pitcher['vs_right']
+            vs_left = pitcher['vs_left']
 
-                for batter in pitcher['batter_data']:
-                    if (float(batter['avg']) > 0.3):
-                        if (batter["prevStats"]["hits"] != "-"):
-                            batter["prevStats"]["hits"] = int(batter["prevStats"]["hits"])
-                        else:
-                            batter["prevStats"]["hits"] = 2
-                        obj = {              
-                            # 'pitcher_name': pitcher_name,
-                            # 'era': float(era),
-                            # 'loc_era': float(loc_era),
-                            # 'vs_right': float(vs_right),
-                            # 'vs_left': float(vs_left),
-                            'batter_name': batter['name'],
-                            'game_url': game_url,
-                            'avg': float(batter['avg']),
-                            'hits': int(batter['hits']),
-                            'at_bats': int(batter['at_bats']),
-                            '2b': int(batter['2b']),
-                            'home_runs': int(batter['home_runs']),
-                            'prevHits': batter["prevStats"]["hits"]
-                        }
+            for batter in pitcher['batter_data']:
+                if float(batter['avg']) > 0.3:
+                    if batter["prevStats"]["hits"] != "-":
+                        batter["prevStats"]["hits"] = int(batter["prevStats"]["hits"])
+                    else:
+                        batter["prevStats"]["hits"] = 2
+                    
+                    avg = float(batter['avg'])
+                    formatted_avg = f"{avg:.3f}"
+                    
+                    ovr_avg = float(batter["prevStats"]["player_avg"])
+                    formatted_ovr_avg = f"{ovr_avg:.3f}"
+                    
+                    obj = {
+                        'batter_name': batter['name'],
+                        'overall_avg': formatted_ovr_avg,
+                        'avg': formatted_avg,
+                        'hits': int(batter['hits']),
+                        'at_bats': int(batter['at_bats']),
+                        '2b': int(batter['2b']),
+                        'home_runs': int(batter['home_runs']),
+                        'prevHits': batter["prevStats"]["hits"],
+                        'game_url': game_url,
+                    }
 
-                        flattened_data.append(obj)
-                        
+                    flattened_data.append(obj)
 
+                    if batter['name'] in top_batters:
+                        top_candidates.append(obj)
+                        current_players.append(batter['name'])
 
-                        if batter['name'] in top_batters:
-                            # new_obj = {
-                            #     "name": obj["batter_name"],
-                            #     'game_url': game_url,
-                            #     "avg": obj["avg"],
-                            #     "hits": obj["hits"],
-                            #     "ab": obj["at_bats"],
-                            #     "2b": obj['2b'],
-                            #     "hr": obj["home_runs"],
-                            #     "prevHits": obj["prevStats"]["hits"]
-                            # }
-                            top_candidates.append(obj)
-                            current_players.append(batter['name'])
-                        
-
-        print('sorting data')
-        sorted_data = sorted(top_candidates, key=lambda x: calculate_weighted_score(x), reverse=True)
-        sorted_flattened_data = sorted(flattened_data, key=lambda x: calculate_weighted_score(x, "others"), reverse=True)
-        sorted_data.append('--------------------end of top candidates-----------------------')
-        for item in sorted_flattened_data[:15]:
-            player_name = item['batter_name']
-            if player_name not in current_players:
-                sorted_data.append(item)
-                current_players.append(player_name)
-
+    print('sorting data')
+    sorted_data = sorted(top_candidates, key=lambda x: calculate_weighted_score(x), reverse=True)
+    sorted_flattened_data = sorted(flattened_data, key=lambda x: calculate_weighted_score(x, "others"), reverse=True)
+    
+    for item in sorted_flattened_data[:15]:
+        player_name = item['batter_name']
+        if player_name not in current_players:
+            sorted_data.append(item)
+            current_players.append(player_name)
 
     # Print the sorted top candidates
-        print("Top batters sorted:")
-        for candidate in sorted_data:
-            print('---------------------------------')
-            print(candidate)
+    print("Top batters sorted:")
+    headers = ['Batter Name', 'Overall Avg', 'Avg', 'Hits', 'At Bats', '2B', 'Home Runs', 'Prev Game Hits', 'Game URL']
+    header_row = "{:<20} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<15} {:<30}".format(*headers)
+    print(header_row)
+    print("-" * len(header_row))
 
+    # Print each row of data
+    for item in sorted_data:
+        print("{:<20} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<15} {:<30}".format(
+            item['batter_name'],
+            item['overall_avg'],
+            item['avg'],
+            item['hits'],
+            item['at_bats'],
+            item['2b'],
+            item['home_runs'],
+            item['prevHits'],
+            item['game_url']
+        ))

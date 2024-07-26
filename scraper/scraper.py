@@ -1,14 +1,20 @@
 import requests
 from scrapeFunc import scrape_urls
 from bs4 import BeautifulSoup
-from datetime import datetime
+import json
+import os
+import time
+from datetime import datetime, timedelta
 
-import pandas as pd
+
 
 def find_urls():
-    # date = datetime.today.strftime('%Y%m%d')
-    date = "20240723"
+    today = datetime.today()
 
+    tomorrow = today + timedelta(days=1)
+
+    date = tomorrow.strftime('%Y%m%d')  
+    
     url = f"https://www.espn.com/mlb/scoreboard/_/date/{date}"
 
     headers = {
@@ -41,59 +47,173 @@ def find_urls():
     
     
 
-def send_data_to_server(data):
-    url = 'http://localhost:3000/api/scraper'
-    response = requests.post(url, json=data)
-    if response.status_code == 200:
-        print('Data sent successfully')
-        print(response.json())
+# def send_data_to_server(data):
+#     url = 'http://localhost:3000/api/scraper'
+#     response = requests.post(url, json=data)
+#     if response.status_code == 200:
+#         print('Data sent successfully')
+#         print(response.json())
+#     else:
+#         print('Failed to send data:', response.status_code, response.text)
+top_batters  = [
+    "Bobby Witt Jr.",
+    "Steven Kwan",
+    "Shohei Ohtani",
+    "Luis Arraez",
+    "Juan Soto",
+    "Carlos Correa",
+    "Jose Altuve",
+    "Aaron Judge",
+    "Marcell Ozuna",
+    "Mookie Betts",
+    "Yordan Alvarez",
+    "Jurickson Profar",
+    "Alec Bohm",
+    "Vladimir Guerrero Jr.",
+    "Ketel Marte",
+    "Rafael Devers",
+    "Jarren Duran",
+    "Bryce Harper",
+    "Alec Burleson",
+    "Brent Rooker",
+    "Bryan Reynolds",
+    "Freddie Freeman",
+    "Josh Smith",
+    "William Contreras",
+    "Gunnar Henderson",
+    "Ezequiel Tovar",
+    "Masyn Winn",
+    "Jeremy Pena",
+    "Jackson Merrill",
+    "Yainer Diaz",
+    "Fernando Tatis Jr.",
+    "Brenton Doyle",
+    "Salvador Perez",
+    "Logan O'Hoppe",
+    "Luis Garcia Jr.",
+    "Yandy Diaz",
+    "Jose Ramirez",
+    "Jonathan India",
+    "Ryan Mountcastle",
+    "Nathaniel Lowe",
+    "Corey Seager",
+    "Brendan Rodgers",
+    "Brice Turang",
+    "Ryan McMahon",
+    "Cody Bellinger",
+    "Adley Rutschman",
+    "Teoscar Hernandez",
+    "Brendan Donovan",
+    "Sal Frelick",
+    "Jordan Westburg"
+]
+DATA_FILE = 'flattened_data.json'
+DATA_TIMESTAMP_FILE = 'data_timestamp.json'
+DATA_EXPIRY_DAYS = 1  # Data is valid for 1 day
+
+def save_data(data, timestamp):
+    with open(DATA_FILE, 'w') as f:
+        json.dump(data, f)
+    with open(DATA_TIMESTAMP_FILE, 'w') as f:
+        json.dump({'timestamp': timestamp}, f)
+
+def load_data():
+    with open(DATA_FILE, 'r') as f:
+        return json.load(f)
+
+def load_timestamp():
+    if os.path.exists(DATA_TIMESTAMP_FILE):
+        with open(DATA_TIMESTAMP_FILE, 'r') as f:
+            return json.load(f).get('timestamp')
+    return None
+
+def is_data_stale(timestamp):
+    if timestamp:
+        file_date = datetime.fromisoformat(timestamp)
+        return datetime.now() - file_date > timedelta(days=DATA_EXPIRY_DAYS)
+    return True
+
+def calculate_weighted_score(obj, type="top"):
+    # Convert prevHits to float
+    # prev_hits = float(obj['prevHits'])
+    
+    # Calculate the weighted score. Will adjust later when we have ind batters avg's
+    if (type == "top"):
+        weighted_score = (0.25 * obj['prevHits']) + (0.50 * obj['avg']) + (0.25 * (obj['at_bats']))
     else:
-        print('Failed to send data:', response.status_code, response.text)
+        weighted_score = (0.10 * obj['prevHits']) + (0.80 * obj['avg']) + (0.10 * (obj['at_bats']))
+        
+    return weighted_score
 
 if __name__ == '__main__':
-    scraped_data = find_urls()
-    top_batters = []
-    flattened_data = []
-    for game in scraped_data:
-        game_url = game['url']
-        for pitcher in game['pitcher_data']:
-            pitcher_name = pitcher['name']
-            era = pitcher['era']
-            loc_era = pitcher['loc_era']
-            vs_right = pitcher['vs_right']
-            vs_left = pitcher['vs_left']
-            for batter in pitcher['batter_data']:
-                batter_name = batter['name']
-                hits = batter['hits']
-                at_bats = batter['at_bats']
-                doubles = batter['2b']
-                home_runs = batter['home_runs']
-                avg = batter['avg']
-                prev_date = batter['prevStats']['date']
-                prev_at_bats = batter['prevStats']['at_bats']
-                prev_hits = batter['prevStats']['hits']
-                
-                
-                flattened_data.append({
-                    'game_url': game_url,
-                    'pitcher_name': pitcher_name,
-                    'era': era,
-                    'loc_era': loc_era,
-                    'vs_right': vs_right,
-                    'vs_left': vs_left,
-                    'batter_name': batter_name,
-                    'hits': hits,
-                    'at_bats': at_bats,
-                    'doubles': doubles,
-                    'home_runs': home_runs,
-                    'avg': avg,
-                    'prev_date': prev_date,
-                    'prev_at_bats': prev_at_bats,
-                    'prev_hits': prev_hits
-                })
+        scraped_data = find_urls()
+        top_candidates = []
+        flattened_data = []
+        current_players = []
+        for game in scraped_data:
+            game_url = game['url']
+            for pitcher in game['pitcher_data']:
+                pitcher_name = pitcher['name']
+                era = pitcher['era']
+                loc_era = pitcher['loc_era']
+                vs_right = pitcher['vs_right']
+                vs_left = pitcher['vs_left']
 
-    print(flattened_data[0])
+                for batter in pitcher['batter_data']:
+                    if (float(batter['avg']) > 0.3):
+                        if (batter["prevStats"]["hits"] != "-"):
+                            batter["prevStats"]["hits"] = int(batter["prevStats"]["hits"])
+                        else:
+                            batter["prevStats"]["hits"] = 2
+                        obj = {              
+                            # 'pitcher_name': pitcher_name,
+                            # 'era': float(era),
+                            # 'loc_era': float(loc_era),
+                            # 'vs_right': float(vs_right),
+                            # 'vs_left': float(vs_left),
+                            'batter_name': batter['name'],
+                            'game_url': game_url,
+                            'avg': float(batter['avg']),
+                            'hits': int(batter['hits']),
+                            'at_bats': int(batter['at_bats']),
+                            '2b': int(batter['2b']),
+                            'home_runs': int(batter['home_runs']),
+                            'prevHits': batter["prevStats"]["hits"]
+                        }
 
-    print("Data has been exported to baseball_data.csv")
+                        flattened_data.append(obj)
+                        
 
-    # send_data_to_server(scraped_data)
+
+                        if batter['name'] in top_batters:
+                            # new_obj = {
+                            #     "name": obj["batter_name"],
+                            #     'game_url': game_url,
+                            #     "avg": obj["avg"],
+                            #     "hits": obj["hits"],
+                            #     "ab": obj["at_bats"],
+                            #     "2b": obj['2b'],
+                            #     "hr": obj["home_runs"],
+                            #     "prevHits": obj["prevStats"]["hits"]
+                            # }
+                            top_candidates.append(obj)
+                            current_players.append(batter['name'])
+                        
+
+        print('sorting data')
+        sorted_data = sorted(top_candidates, key=lambda x: calculate_weighted_score(x), reverse=True)
+        sorted_flattened_data = sorted(flattened_data, key=lambda x: calculate_weighted_score(x, "others"), reverse=True)
+        sorted_data.append('--------------------end of top candidates-----------------------')
+        for item in sorted_flattened_data[:15]:
+            player_name = item['batter_name']
+            if player_name not in current_players:
+                sorted_data.append(item)
+                current_players.append(player_name)
+
+
+    # Print the sorted top candidates
+        print("Top batters sorted:")
+        for candidate in sorted_data:
+            print('---------------------------------')
+            print(candidate)
+

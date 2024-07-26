@@ -10,6 +10,46 @@ headers = {
 import requests
 from bs4 import BeautifulSoup
 
+def scrape_urls(urls):
+    
+    final_data = []
+    for game_url in urls:
+        # Send a GET request to the game URL with headers
+        response = requests.get(game_url, headers=headers)
+        if response.status_code != 200:
+            print(f'Failed to retrieve the game page. Status code: {response.status_code}')
+            exit()
+
+        # Parse the HTML content using BeautifulSoup
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Find pitcher URLs
+
+        
+        pitcher_elements = soup.select('div.Pitchers__Athlete a')
+
+        # Extract URLs
+        pitcher_urls = [a['href'] for a in pitcher_elements]
+
+        #   Print the extracted URLs      
+            
+        
+        # Print and scrape each pitcher's splits data
+        pitcher_data = []
+        print('fetching pitchers for game', urls.index(game_url) + 1, "/", len(urls) ,"...")
+        for i in range(0, len(pitcher_urls)):
+            
+            splits_data = scrape_pitcher_splits(pitcher_urls[i], i)
+            batter_data = scrape_batter_splits(pitcher_urls[i])
+            splits_data['batter_data'] = batter_data
+            pitcher_data.append(splits_data)
+        
+        final_data.append({"url": game_url, "pitcher_data": pitcher_data})
+
+
+    return final_data
+
+
 def batter_previous_games(player_url):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
@@ -182,44 +222,25 @@ def scrape_pitcher_splits(pitcher_url, i):
 
 
 
-def scrape_urls(urls):
+
+# def scrape_top_names():
+#     # Send a GET request to the URL
+#     response = requests.get("https://www.espn.com/mlb/stats/player")
+#     if response.status_code != 200:
+#         print(f"Failed to fetch the webpage. Status code: {response.status_code}")
+#         return []
+
+#     # Parse the content of the webpage with BeautifulSoup
+#     soup = BeautifulSoup(response.content, 'html.parser')
+
+#     # Find all elements that contain player names
+#     tbody = soup.find('tbody', class_='Table__TBODY')
+
+#     # Extract player names from the 'a' tags with class 'AnchorLink'
+#     names = [a.get_text() for a in tbody.find_all('a', class_='AnchorLink')]
+#     print(names[:5])
+#     return names
     
-    final_data = []
-    for game_url in urls:
-        # Send a GET request to the game URL with headers
-        response = requests.get(game_url, headers=headers)
-        if response.status_code != 200:
-            print(f'Failed to retrieve the game page. Status code: {response.status_code}')
-            exit()
-
-        # Parse the HTML content using BeautifulSoup
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        # Find pitcher URLs
-
-        
-        pitcher_elements = soup.select('div.Pitchers__Athlete a')
-
-        # Extract URLs
-        pitcher_urls = [a['href'] for a in pitcher_elements]
-
-        #   Print the extracted URLs      
-            
-        
-        # Print and scrape each pitcher's splits data
-        pitcher_data = []
-        print('fetching pitchers for game', urls.index(game_url) + 1  , "...")
-        for i in range(0, len(pitcher_urls)):
-            
-            splits_data = scrape_pitcher_splits(pitcher_urls[i], i)
-            batter_data = scrape_batter_splits(pitcher_urls[i])
-            splits_data['batter_data'] = batter_data
-            pitcher_data.append(splits_data)
-        
-        final_data.append({"url": game_url, "pitcher_data": pitcher_data})
-
-
-    return final_data
 
 
 

@@ -137,17 +137,24 @@ def is_data_stale(timestamp):
 def calculate_weighted_score(obj, type="top"):
     try:
         # Convert values to float for calculations
-        prev_hits = float(obj['prevHits'])
+        if obj['prevHits'] == "-":
+            prev_hits = .000
+        elif obj['prevHits'] == 0:
+            prev_hits = .750
+        else: 
+            prev_hits = .250
+        
         avg = float(obj['avg'])
         at_bats = float(obj['at_bats'])
-        
+        hand_era = float(obj['hand_era'])
         overall_avg = float(obj['overall_avg'])
+
         
         # Calculate the weighted score. Will adjust later when we have individual batters' averages
         if type == "top":
-            weighted_score = (0.25 * prev_hits) + (0.50 * avg) + (0.25 * at_bats)
+            weighted_score = (0.35 * prev_hits) + (0.40 * avg) + (0.15 * at_bats) + (0.10 * hand_era)
         else:
-            weighted_score = (0.10 * prev_hits) + (0.60 * avg) + (0.05 * at_bats) + (0.25 * overall_avg)
+            weighted_score = (0.25 * prev_hits) + (0.35 * avg) + (0.10 * at_bats) + (0.20 * overall_avg) + (0.10 * hand_era)
         
         return weighted_score
     except Exception as e:
@@ -187,17 +194,28 @@ if __name__ == '__main__':
             vs_left = pitcher['vs_left']
 
             for batter in pitcher['batter_data']:
-                if float(batter['avg']) > 0.3:
+                if float(batter['avg']) >= 0.25 and convert_to_float(batter["prevStats"]["player_avg"]) >= .23:
                     if batter["prevStats"]["hits"] != "-":
                         batter["prevStats"]["hits"] = int(batter["prevStats"]["hits"])
                     else:
-                        batter["prevStats"]["hits"] = 2
+                        batter["prevStats"]["hits"] = 1
                     
                     avg = float(batter['avg'])
                     formatted_avg = f"{avg:.3f}"
                     
                     ovr_avg = convert_to_float(batter["prevStats"]["player_avg"])
                     formatted_ovr_avg = f"{ovr_avg:.3f}" if ovr_avg is not None else "N/A"
+
+                    # hand_era = vs_right if batter['hand'] == 'R' else vs_left
+                    if batter["prevStats"]['hand'] == 'Right':
+                        hand_era = vs_right
+                    elif batter["prevStats"]['hand'] == 'Left':
+                        hand_era = vs_left
+                    elif batter["prevStats"]['hand'] == 'Both':
+                        if vs_right > vs_left:
+                            hand_era = vs_right
+                        else:
+                            hand_era = vs_left
                     
                     obj = {
                         'batter_name': batter['name'],
@@ -209,7 +227,11 @@ if __name__ == '__main__':
                         'home_runs': int(batter['home_runs']),
                         'prevHits': batter["prevStats"]["hits"],
                         'game_url': game_url,
+                        "opp_era": pitcher['era'],
+                        "loc_era": pitcher['loc_era'],
+                        "hand_era": hand_era
                     }
+                
 
                     flattened_data.append(obj)
 
@@ -229,7 +251,7 @@ if __name__ == '__main__':
 
     # Print the sorted top candidates
     print("Top batters sorted:")
-    headers = ['Batter Name', 'Overall Avg', 'Avg', 'Hits', 'At Bats', '2B', 'Home Runs', 'Prev Game Hits', 'Game URL']
+    headers = ['Batter Name', 'Overall Avg', 'Hand Avg', 'Avg', 'Hits', 'At Bats', '2B', 'Home Runs', 'Prev Game Hits', 'Game URL']
     header_row = "{:<20} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<15} {:<30}".format(*headers)
     print(header_row)
     print("-" * len(header_row))
@@ -237,8 +259,9 @@ if __name__ == '__main__':
     # Print each row of data
     for item in sorted_data:
         print("{:<20} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<15} {:<30}".format(
-            item['batter_name'],
+            item['batter_name'][0:18],
             item['overall_avg'],
+            item['hand_era'],
             item['avg'],
             item['hits'],
             item['at_bats'],

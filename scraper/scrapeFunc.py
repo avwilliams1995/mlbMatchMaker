@@ -67,6 +67,17 @@ def batter_previous_games(player_url):
     rows = soup.find_all('tr', class_='Table__TR Table__TR--sm Table__even')
     batting_average = avg_element.get_text(strip=True) if avg_element else '0'
 
+    bio_list_items = soup.select('.PlayerHeader__Bio_List li')
+    
+    # Loop through the list items to find the BAT/THR entry
+    for item in bio_list_items:
+        header = item.find('div', class_='ttu')
+        if header and header.get_text() == 'BAT/THR':
+            value = item.find('div', class_='fw-medium clr-black')
+            if value:
+                handedness = value.get_text(strip=True).split('/')[0]
+                break
+
     # Initialize dictionary to store stats for the most recent game
     game_stats = {}
 
@@ -79,17 +90,13 @@ def batter_previous_games(player_url):
                 "player_avg": batting_average,
                 "date": cells[0].text.strip(),
                 "at_bats": cells[3].text.strip(),
-                "hits": cells[4].text.strip(),
+                "hits": cells[5].text.strip(),
+                "hand": handedness
             }
             break  # Exit after getting the most recent game stats
     
-
+    # print(game_stats)
     return game_stats
-
-
-
-    
-
 
 
 
@@ -223,27 +230,6 @@ def scrape_pitcher_splits(pitcher_url, i):
 
 # '-----------------------------------------------------------------------------'
 
-
-
-
-# def scrape_top_names():
-#     # Send a GET request to the URL
-#     response = requests.get("https://www.espn.com/mlb/stats/player")
-#     if response.status_code != 200:
-#         print(f"Failed to fetch the webpage. Status code: {response.status_code}")
-#         return []
-
-#     # Parse the content of the webpage with BeautifulSoup
-#     soup = BeautifulSoup(response.content, 'html.parser')
-
-#     # Find all elements that contain player names
-#     tbody = soup.find('tbody', class_='Table__TBODY')
-
-#     # Extract player names from the 'a' tags with class 'AnchorLink'
-#     names = [a.get_text() for a in tbody.find_all('a', class_='AnchorLink')]
-#     print(names[:5])
-#     return names
-    
 
 
 

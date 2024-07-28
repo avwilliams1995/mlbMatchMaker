@@ -155,6 +155,21 @@ def calculate_weighted_score(obj, type="top"):
         print(f"Object causing error: {obj}")
         raise
 
+def convert_to_float(value):
+        try:
+            return float(value)
+        except ValueError:
+            if '-' in value:
+                numerator, denominator = value.split('-')
+                try:
+                    return float(numerator) / float(denominator)
+                except ValueError:
+                    print(f"Cannot convert {value} to float.")
+                    return None
+            else:
+                print(f"Cannot convert {value} to float.")
+                return None
+
 if __name__ == '__main__':
     scraped_data = find_urls()
     top_candidates = []
@@ -181,8 +196,8 @@ if __name__ == '__main__':
                     avg = float(batter['avg'])
                     formatted_avg = f"{avg:.3f}"
                     
-                    ovr_avg = float(batter["prevStats"]["player_avg"])
-                    formatted_ovr_avg = f"{ovr_avg:.3f}"
+                    ovr_avg = convert_to_float(batter["prevStats"]["player_avg"])
+                    formatted_ovr_avg = f"{ovr_avg:.3f}" if ovr_avg is not None else "N/A"
                     
                     obj = {
                         'batter_name': batter['name'],

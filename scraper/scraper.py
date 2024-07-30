@@ -12,9 +12,10 @@ from datetime import datetime, timedelta
 def find_urls():
     today = datetime.today()
 
-    tomorrow = today + timedelta(days=1)
+    # Uncomment the following line to scrape data for tomorrow
+    # today = today + timedelta(days=1)
 
-    date = tomorrow.strftime('%Y%m%d')  
+    date = today.strftime('%Y%m%d')  
     
     url = f"https://www.espn.com/mlb/scoreboard/_/date/{date}"
 
@@ -108,53 +109,84 @@ top_batters  = [
     "Sal Frelick",
     "Jordan Westburg"
 ]
-DATA_FILE = 'flattened_data.json'
-DATA_TIMESTAMP_FILE = 'data_timestamp.json'
-DATA_EXPIRY_DAYS = 1  # Data is valid for 1 day
 
-def save_data(data, timestamp):
-    with open(DATA_FILE, 'w') as f:
-        json.dump(data, f)
-    with open(DATA_TIMESTAMP_FILE, 'w') as f:
-        json.dump({'timestamp': timestamp}, f)
+def scale_score(type, value):
+    if type == "avg_against":
+        if value>=.6:
+            return 10
+        elif value>=.45:
+            return 8.5
+        elif value>=.4:
+            return 7
+        elif value>=.333:
+            return 5
+        elif value>=.27:
+            return 3
+        else:
+            return 1
+    elif type == "atbats":
+        if value>=25:
+            return 10
+        elif value>=20:
+            return 8.5
+        elif value>=15:
+            return 7
+        elif value>=10:
+            return 5
+        elif value>=5:
+            return 4
+        else:
+            return 0
+    elif type == "avg_ovr":
+        if value>=.310:
+            return 10
+        elif value>=.3:
+            return 9
+        elif value>=.275:
+            return 7
+        elif value>=.25:
+            return 5
+        elif value>=.220:
+            return 3
+        else:
+            return 1
+    elif type == "hand_avg":
+        if value>=.300:
+            return 10
+        elif value>=.28:
+            return 8.5
+        elif value>=.26:
+            return 7
+        elif value>=.24:
+            return 5
+        elif value>=.200:
+            return 3
+        else:
+            return 1
 
-def load_data():
-    with open(DATA_FILE, 'r') as f:
-        return json.load(f)
-
-def load_timestamp():
-    if os.path.exists(DATA_TIMESTAMP_FILE):
-        with open(DATA_TIMESTAMP_FILE, 'r') as f:
-            return json.load(f).get('timestamp')
-    return None
-
-def is_data_stale(timestamp):
-    if timestamp:
-        file_date = datetime.fromisoformat(timestamp)
-        return datetime.now() - file_date > timedelta(days=DATA_EXPIRY_DAYS)
-    return True
 
 def calculate_weighted_score(obj, type="top"):
     try:
         # Convert values to float for calculations
         if obj['prevHits'] == "-":
-            prev_hits = .000
+            prev_hits = 3
         elif obj['prevHits'] == 0:
-            prev_hits = .750
-        else: 
-            prev_hits = .250
-        
-        avg = float(obj['avg'])
-        at_bats = float(obj['at_bats'])
-        hand_era = float(obj['hand_era'])
-        overall_avg = float(obj['overall_avg'])
+            prev_hits = 10
+        elif obj['prevHits'] == 1: 
+            prev_hits = 5
+        else:
+            prev_hits = 3
+        avg = scale_score("avg_against", float(obj['avg']))
+        at_bats = scale_score("atbats", float(obj['at_bats']))
+        hand_avg = scale_score("hand_avg", convert_to_float(obj['hand_avg']))
+        overall_avg = scale_score("avg_ovr", float(obj['overall_avg']))
 
         
         # Calculate the weighted score. Will adjust later when we have individual batters' averages
         if type == "top":
-            weighted_score = (0.35 * prev_hits) + (0.40 * avg) + (0.15 * at_bats) + (0.10 * hand_era)
+            weighted_score = (0.35 * prev_hits) + (0.15 * avg) + (0.25 * at_bats) + (0.15 * hand_avg) + (0.10 * overall_avg)
         else:
-            weighted_score = (0.25 * prev_hits) + (0.35 * avg) + (0.10 * at_bats) + (0.20 * overall_avg) + (0.10 * hand_era)
+            weighted_score = (0.25 * prev_hits) + (0.25 * avg) + (0.25 * at_bats) + (0.15 * overall_avg) + (0.10 * hand_avg)
         
         return weighted_score
     except Exception as e:
@@ -163,19 +195,14 @@ def calculate_weighted_score(obj, type="top"):
         raise
 
 def convert_to_float(value):
+        if value == "HR":
+            return .2
         try:
             return float(value)
         except ValueError:
-            if '-' in value:
-                numerator, denominator = value.split('-')
-                try:
-                    return float(numerator) / float(denominator)
-                except ValueError:
-                    print(f"Cannot convert {value} to float.")
-                    return None
-            else:
-                print(f"Cannot convert {value} to float.")
-                return None
+            return .2
+
+
 
 if __name__ == '__main__':
     scraped_data = find_urls()
@@ -206,16 +233,16 @@ if __name__ == '__main__':
                     ovr_avg = convert_to_float(batter["prevStats"]["player_avg"])
                     formatted_ovr_avg = f"{ovr_avg:.3f}" if ovr_avg is not None else "N/A"
 
-                    # hand_era = vs_right if batter['hand'] == 'R' else vs_left
+
                     if batter["prevStats"]['hand'] == 'Right':
-                        hand_era = vs_right
+                        hand_avg = vs_right
                     elif batter["prevStats"]['hand'] == 'Left':
-                        hand_era = vs_left
+                        hand_avg = vs_left
                     elif batter["prevStats"]['hand'] == 'Both':
                         if vs_right > vs_left:
-                            hand_era = vs_right
+                            hand_avg = vs_right
                         else:
-                            hand_era = vs_left
+                            hand_avg = vs_left
                     
                     obj = {
                         'batter_name': batter['name'],
@@ -229,7 +256,7 @@ if __name__ == '__main__':
                         'game_url': game_url,
                         "opp_era": pitcher['era'],
                         "loc_era": pitcher['loc_era'],
-                        "hand_era": hand_era
+                        "hand_avg": hand_avg
                     }
                 
 
@@ -251,17 +278,24 @@ if __name__ == '__main__':
 
     # Print the sorted top candidates
     print("Top batters sorted:")
-    headers = ['Batter Name', 'Overall Avg', 'Hand Avg', 'Avg', 'Hits', 'At Bats', '2B', 'Home Runs', 'Prev Game Hits', 'Game URL']
+    headers = ['Batter Name', 'Overall Avg', 'Hand Avg', 'Avg Against', 'Hits', 'At Bats', '2B', 'Home Runs', 'Prev Game Hits', 'Game URL']
     header_row = "{:<20} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<15} {:<30}".format(*headers)
     print(header_row)
     print("-" * len(header_row))
 
     # Print each row of data
+    found = False
     for item in sorted_data:
+        if item['batter_name'] not in top_batters and not found:
+            print(" ")
+            print('---------------------------------')
+            print(" ")
+            found = True
+            
         print("{:<20} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<15} {:<30}".format(
             item['batter_name'][0:18],
             item['overall_avg'],
-            item['hand_era'],
+            item['hand_avg'],
             item['avg'],
             item['hits'],
             item['at_bats'],

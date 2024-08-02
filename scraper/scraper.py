@@ -5,9 +5,7 @@ import json
 import os
 import time
 from datetime import datetime, timedelta
-
-
-
+from scrapeCache import scrape_with_cache
 
 def find_urls():
     today = datetime.today()
@@ -43,8 +41,8 @@ def find_urls():
             game_urls.append(f"https://www.espn.com/mlb/game/_/gameId/{game_id}")
 
     # Scrape the data from the URLs
-    scraped_data = scrape_urls(game_urls)
-    return scraped_data
+    
+    return game_urls
 
     
     
@@ -180,13 +178,14 @@ def calculate_weighted_score(obj, type="top"):
         at_bats = scale_score("atbats", float(obj['at_bats']))
         hand_avg = scale_score("hand_avg", convert_to_float(obj['hand_avg']))
         overall_avg = scale_score("avg_ovr", float(obj['overall_avg']))
+        vs_hand = scale_score("avg_against", float(obj['vs_hand']))
 
         
         # Calculate the weighted score. Will adjust later when we have individual batters' averages
         if type == "top":
-            weighted_score = (0.35 * prev_hits) + (0.15 * avg) + (0.25 * at_bats) + (0.15 * hand_avg) + (0.10 * overall_avg)
+            weighted_score = (0.25 * prev_hits) + (0.15 * avg) + (0.25 * at_bats) + (0.10 * hand_avg) + (0.05 * overall_avg) + (0.15 * vs_hand)
         else:
-            weighted_score = (0.25 * prev_hits) + (0.25 * avg) + (0.25 * at_bats) + (0.15 * overall_avg) + (0.10 * hand_avg)
+            weighted_score = (0.25 * prev_hits) + (0.25 * avg) + (0.2 * at_bats) + (0.15 * overall_avg) + (0.05 * hand_avg) + (0.10 * vs_hand)
         
         return weighted_score
     except Exception as e:
@@ -205,7 +204,8 @@ def convert_to_float(value):
 
 
 if __name__ == '__main__':
-    scraped_data = find_urls()
+    urls = find_urls()
+    scraped_data = scrape_with_cache(urls)
     top_candidates = []
     flattened_data = []
     current_players = []
@@ -221,50 +221,55 @@ if __name__ == '__main__':
             vs_left = pitcher['vs_left']
 
             for batter in pitcher['batter_data']:
-                if float(batter['avg']) >= 0.25 and convert_to_float(batter["prevStats"]["player_avg"]) >= .23:
-                    if batter["prevStats"]["hits"] != "-":
-                        batter["prevStats"]["hits"] = int(batter["prevStats"]["hits"])
-                    else:
-                        batter["prevStats"]["hits"] = 1
-                    
-                    avg = float(batter['avg'])
-                    formatted_avg = f"{avg:.3f}"
-                    
-                    ovr_avg = convert_to_float(batter["prevStats"]["player_avg"])
-                    formatted_ovr_avg = f"{ovr_avg:.3f}" if ovr_avg is not None else "N/A"
-
-
-                    if batter["prevStats"]['hand'] == 'Right':
-                        hand_avg = vs_right
-                    elif batter["prevStats"]['hand'] == 'Left':
-                        hand_avg = vs_left
-                    elif batter["prevStats"]['hand'] == 'Both':
-                        if vs_right > vs_left:
-                            hand_avg = vs_right
+                if ("player_avg" in batter["prevStats"] and "hits" in batter["prevStats"] and "hand" in batter["prevStats"]):
+                    if float(batter['avg']) >= 0.25 and convert_to_float(batter["prevStats"]["player_avg"]) >= .23:
+                        if batter["prevStats"]["hits"] != "-":
+                            batter["prevStats"]["hits"] = int(batter["prevStats"]["hits"])
                         else:
+                            batter["prevStats"]["hits"] = 1
+                        
+                        avg = float(batter['avg'])
+                        formatted_avg = f"{avg:.3f}"
+                        
+                        ovr_avg = convert_to_float(batter["prevStats"]["player_avg"])
+                        formatted_ovr_avg = f"{ovr_avg:.3f}" if ovr_avg is not None else "N/A"
+                        
+                        vs_hand = convert_to_float(batter["prevStats"]["vs_hand"])
+                        formatted_hand_avg = f"{vs_hand:.3f}" 
+
+
+                        if batter["prevStats"]['hand'] == 'Right':
+                            hand_avg = vs_right
+                        elif batter["prevStats"]['hand'] == 'Left':
                             hand_avg = vs_left
+                        elif batter["prevStats"]['hand'] == 'Both':
+                            if vs_right > vs_left:
+                                hand_avg = vs_right
+                            else:
+                                hand_avg = vs_left
+                        
+                        obj = {
+                            'batter_name': batter['name'],
+                            'overall_avg': formatted_ovr_avg,
+                            'avg': formatted_avg,
+                            'hits': int(batter['hits']),
+                            'at_bats': int(batter['at_bats']),
+                            '2b': int(batter['2b']),
+                            'home_runs': int(batter['home_runs']),
+                            'prevHits': batter["prevStats"]["hits"],
+                            'game_url': game_url,
+                            "opp_era": pitcher['era'],
+                            "loc_era": pitcher['loc_era'],
+                            "hand_avg": hand_avg,
+                            "vs_hand": vs_hand
+                        }
                     
-                    obj = {
-                        'batter_name': batter['name'],
-                        'overall_avg': formatted_ovr_avg,
-                        'avg': formatted_avg,
-                        'hits': int(batter['hits']),
-                        'at_bats': int(batter['at_bats']),
-                        '2b': int(batter['2b']),
-                        'home_runs': int(batter['home_runs']),
-                        'prevHits': batter["prevStats"]["hits"],
-                        'game_url': game_url,
-                        "opp_era": pitcher['era'],
-                        "loc_era": pitcher['loc_era'],
-                        "hand_avg": hand_avg
-                    }
-                
 
-                    flattened_data.append(obj)
+                        flattened_data.append(obj)
 
-                    if batter['name'] in top_batters:
-                        top_candidates.append(obj)
-                        current_players.append(batter['name'])
+                        if batter['name'] in top_batters:
+                            top_candidates.append(obj)
+                            current_players.append(batter['name'])
 
     print('sorting data')
     sorted_data = sorted(top_candidates, key=lambda x: calculate_weighted_score(x), reverse=True)
@@ -278,8 +283,8 @@ if __name__ == '__main__':
 
     # Print the sorted top candidates
     print("Top batters sorted:")
-    headers = ['Batter Name', 'Overall Avg', 'Hand Avg', 'Avg Against', 'Hits', 'At Bats', '2B', 'Home Runs', 'Prev Game Hits', 'Game URL']
-    header_row = "{:<20} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<15} {:<30}".format(*headers)
+    headers = ['Batter Name', 'Ovr Avg', 'Pitch Hand',  "vs_hand", 'Avg vs', 'Hits', 'At Bats', '2B', 'HR', 'Prev Hits', 'Game URL']
+    header_row = "{:<20} {:<15} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<30}".format(*headers)
     print(header_row)
     print("-" * len(header_row))
 
@@ -292,10 +297,11 @@ if __name__ == '__main__':
             print(" ")
             found = True
             
-        print("{:<20} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<15} {:<30}".format(
+        print("{:<20} {:<15} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<30}".format(
             item['batter_name'][0:18],
             item['overall_avg'],
             item['hand_avg'],
+            item["vs_hand"], 
             item['avg'],
             item['hits'],
             item['at_bats'],
@@ -303,4 +309,4 @@ if __name__ == '__main__':
             item['home_runs'],
             item['prevHits'],
             item['game_url']
-        ))
+))

@@ -1,46 +1,85 @@
-# Getting Started with Create React App
+# MLB Daily Batter Analyzer
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is a web scraping tool designed to collect and analyze Major League Baseball (MLB) player statistics for a specific date. It is designed to fetch daily data from ESPN's MLB scoreboard and provide a weighted score analysis for top batters based on various statistical parameters. The project is built using Python, utilizing libraries such as `requests`, `BeautifulSoup`, and `datetime`.
 
-## Available Scripts
+## Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Data Processing](#data-processing)
+- [Scoring System](#scoring-system)
+- [Contributing](#contributing)
+- [License](#license)
 
-In the project directory, you can run:
+## Features
+- **Web Scraping**: Fetches daily MLB scoreboard data and retrieves URLs for individual games.
+- **Data Analysis**: Extracts and processes statistics for pitchers and batters.
+- **Weighted Scoring**: Calculates a weighted score for each batter based on specific criteria such as batting average, hits, at-bats, previous game at bats, and more.
+- **Top Batters List**: Generates a sorted list of top batters in the league.
+- **Caching**: Uses a caching mechanism to avoid redundant data scraping.
 
-### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Project still in early stages, notes on why I started this:
+  - Gain more knowledge on scraping data
+  - Keep enhancing skills on frontend development
+  - Have fun betting $5 a day on the top players each day/testing the calculation algo
+  Things I want to try:
+  - Implementing ML to check if bets are working and what trends it finds. Definitely want to expand my knowledge on this subject
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
 
-### `npm test`
+## Installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/mlb-daily-batter-analyzer.git
+    cd scraper
+    ```
 
-### `npm run build`
+2. **Install the required Python packages:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. **Create the required directories for caching (if not already present):**
+    ```bash
+    touch mlb_data_cache.pkl
+    ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Usage
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. **Run the scraper:**
+    ```bash
+    python scraper.py
+    ```
+   This will scrape the data for today or tomorrow's  MLB games and generate a list of top batters based on their weighted scores. Cache resets will reset after 5am
 
-### `npm run eject`
+2. **View the results:**
+   The script will output a sorted list of top batters along with their statistics directly to the console.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Project Structure
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- `scraper.py`: The main script that handles the scraping, data processing, and scoring of batters.
+- `scrapeFunc.py`: Contains functions that perform the web scraping, including extracting and processing data for individual players and pitchers.
+- `scrapeCache.py`: Implements caching to store and reuse scraped data.
+- `requirements.txt`: Lists the required Python libraries to run the project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Data Processing
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+The scraper collects data from ESPN's MLB scoreboard for a specified date. The data includes information about games, pitchers, and batters. The collected data is then processed to calculate various statistical metrics such as batting average, hits, at-bats, etc.
 
-## Learn More
+## Scoring System
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The project uses a weighted scoring system to evaluate batters. The score is calculated based on the following parameters:
+- **Previous Hits**: Assigns a score based on the number of hits in previous games.
+- **Batting Average**: Considers both overall batting average and average against specific pitcher handedness.
+- **At-bats**: Rewards batters who have had more at-bats.
+- **Recent Performance**: Evaluates a player's performance in prev game and last 15 days.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Example Scoring Calculation:
+
+```python
+weighted_score = (0.3 * prev_hits) + (0.15 * avg) + (0.2 * at_bats) + 
+                 (0.10 * hand_avg) + (0.1 * overall_avg) + (0.05 * vs_hand) + 
+                 (0.10 * last_15)
+

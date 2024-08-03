@@ -1,6 +1,6 @@
 # MLB Daily Batter Analyzer
 
-This project is a web scraping tool designed to collect and analyze Major League Baseball (MLB) player statistics for a specific date. It is designed to fetch daily data from ESPN's MLB scoreboard and provide a weighted score analysis for top batters based on various statistical parameters. The project is built using Python, utilizing libraries such as `requests`, `BeautifulSoup`, and `datetime`.
+This project is a web scraping tool designed to collect and analyze Major League Baseball (MLB) player statistics for a specific date. It is designed to fetch daily data from ESPN's MLB scoreboard and provide a weighted score analysis for top batters based on various statistical parameters. The project is built using Python, with libraries such as `requests`, `BeautifulSoup`, and `datetime`. This has been a fun side project for me to enhance my overall skills in software development!
 
 ## Table of Contents
 - [Features](#features)

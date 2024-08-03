@@ -7,11 +7,12 @@ import time
 from datetime import datetime, timedelta
 from scrapeCache import scrape_with_cache
 
+
 def find_urls():
     today = datetime.today()
 
     # Uncomment the following line to scrape data for tomorrow
-    # today = today + timedelta(days=1)
+    today = today + timedelta(days=1)
 
     date = today.strftime('%Y%m%d')  
     
@@ -45,16 +46,6 @@ def find_urls():
     return game_urls
 
     
-    
-
-# def send_data_to_server(data):
-#     url = 'http://localhost:3000/api/scraper'
-#     response = requests.post(url, json=data)
-#     if response.status_code == 200:
-#         print('Data sent successfully')
-#         print(response.json())
-#     else:
-#         print('Failed to send data:', response.status_code, response.text)
 top_batters  = [
     "Bobby Witt Jr.",
     "Steven Kwan",
@@ -106,13 +97,16 @@ top_batters  = [
     "Brendan Donovan",
     "Sal Frelick",
     "Jordan Westburg"
-]
+]   
+
+    
+
 
 def scale_score(type, value):
     if type == "avg_against":
-        if value>=.6:
+        if value>=.7:
             return 10
-        elif value>=.45:
+        elif value>=.6:
             return 8.5
         elif value>=.4:
             return 7
@@ -173,19 +167,20 @@ def calculate_weighted_score(obj, type="top"):
         elif obj['prevHits'] == 1: 
             prev_hits = 5
         else:
-            prev_hits = 3
+            prev_hits = 2
         avg = scale_score("avg_against", float(obj['avg']))
         at_bats = scale_score("atbats", float(obj['at_bats']))
         hand_avg = scale_score("hand_avg", convert_to_float(obj['hand_avg']))
         overall_avg = scale_score("avg_ovr", float(obj['overall_avg']))
         vs_hand = scale_score("avg_against", float(obj['vs_hand']))
+        last_15 = scale_score("avg_against", float(obj['last_15']))
 
         
         # Calculate the weighted score. Will adjust later when we have individual batters' averages
         if type == "top":
-            weighted_score = (0.25 * prev_hits) + (0.15 * avg) + (0.25 * at_bats) + (0.10 * hand_avg) + (0.05 * overall_avg) + (0.15 * vs_hand)
+            weighted_score = (0.3 * prev_hits) + (0.15 * avg) + (0.2 * at_bats) + (0.10 * hand_avg) + (0.1 * overall_avg) + (0.05 * vs_hand) + (0.10 * last_15)
         else:
-            weighted_score = (0.25 * prev_hits) + (0.25 * avg) + (0.2 * at_bats) + (0.15 * overall_avg) + (0.05 * hand_avg) + (0.10 * vs_hand)
+            weighted_score = (0.2 * prev_hits) + (0.2 * avg) + (0.2 * at_bats) + (0.15 * overall_avg) + (0.05 * vs_hand) + (0.15 * last_15)
         
         return weighted_score
     except Exception as e:
@@ -206,6 +201,7 @@ def convert_to_float(value):
 if __name__ == '__main__':
     urls = find_urls()
     scraped_data = scrape_with_cache(urls)
+    # scraped_data = scrape_with_cache(urls, True)
     top_candidates = []
     flattened_data = []
     current_players = []
@@ -261,7 +257,8 @@ if __name__ == '__main__':
                             "opp_era": pitcher['era'],
                             "loc_era": pitcher['loc_era'],
                             "hand_avg": hand_avg,
-                            "vs_hand": vs_hand
+                            "vs_hand": vs_hand,
+                            "last_15": batter["prevStats"]["last_15"]
                         }
                     
 
@@ -283,8 +280,8 @@ if __name__ == '__main__':
 
     # Print the sorted top candidates
     print("Top batters sorted:")
-    headers = ['Batter Name', 'Ovr Avg', 'Pitch Hand',  "vs_hand", 'Avg vs', 'Hits', 'At Bats', '2B', 'HR', 'Prev Hits', 'Game URL']
-    header_row = "{:<20} {:<15} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<30}".format(*headers)
+    headers = ['Batter Name', 'Ovr Avg', 'Pitcher vs_hand',  "vs_hand", "last_15", 'vs pitcher', 'Hits', 'At Bats', '2B', 'HR', 'Prev Hits', 'Game URL']
+    header_row = "{:<20} {:<15} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<30}".format(*headers)
     print(header_row)
     print("-" * len(header_row))
 
@@ -297,11 +294,12 @@ if __name__ == '__main__':
             print(" ")
             found = True
             
-        print("{:<20} {:<15} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<30}".format(
+        print("{:<20} {:<15} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<30}".format(
             item['batter_name'][0:18],
             item['overall_avg'],
             item['hand_avg'],
             item["vs_hand"], 
+            item["last_15"],
             item['avg'],
             item['hits'],
             item['at_bats'],

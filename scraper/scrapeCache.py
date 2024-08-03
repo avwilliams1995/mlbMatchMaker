@@ -27,14 +27,16 @@ def load_cache():
         return None
 
 def save_cache(data):
+    if os.path.exists(CACHE_FILE):
+        os.remove(CACHE_FILE) 
     with open(CACHE_FILE, "wb") as f:
         pickle.dump(data, f)
 
-def scrape_with_cache(urls):
+def scrape_with_cache(urls, clear = False):
     if is_cache_valid():
-        print("Using cached data")
         cached_data = load_cache()
-        if cached_data is not None:
+        if cached_data is not None and not clear:
+            print("Using cached data")
             return cached_data
     
     print("Fetching fresh data")

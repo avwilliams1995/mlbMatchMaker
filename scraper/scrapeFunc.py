@@ -47,13 +47,29 @@ def get_hand_avg(player_url, handedness):
 
     rows = table.find_all('tr')
     scrape_row = rows[4] if handedness == "Right" else rows[3]
-    cells = scrape_row.find_all('td')
+    rows_15 = soup.find_all('tr', class_='Table__TR Table__TR--sm Table__even')
+    index = 0
+    for row in rows_15:
+        if row.find('td', class_='Table__TD').text.strip() == "Last 15 Days":
+            index = int(row['data-idx'])
+            break
 
+    if index != 0:
+        cells_15 = rows[index].find_all('td')  
+    cells = scrape_row.find_all('td')
+    
     if cells:
         value = cells[12].text.strip()
-        return float(value) if value != "HR" else 0.2  # Assign 0.2 if the value is "HR"
+        if index!= 0:
+            last_15_avg = cells_15[12].text.strip()
+        else:
+            last_15_avg = 0.0
+        finalValue = float(value) if value != "HR" else 0.2  # Assign 0.2 if the value is "HR"
+        final_15 = float(last_15_avg) if value != "HR" else 0.2  # Assign 0.2 if the value is "HR"
+        return [finalValue, final_15]
     else:
-        return 0.0  # Default to 0.0 if cells are empty
+        return [0.0, 0.0]  # Default to 0.0 if cells are empty
+
 
 def batter_previous_games(player_url, pitcher_hand):
     response = requests.get(player_url, headers=HEADERS)
@@ -82,7 +98,8 @@ def batter_previous_games(player_url, pitcher_hand):
                 "at_bats": cells[3].text.strip(),
                 "hits": cells[5].text.strip(),
                 "hand": handedness,
-                "vs_hand": get_hand_avg(player_url, pitcher_hand)
+                "vs_hand": get_hand_avg(player_url, pitcher_hand)[0],
+                "last_15": get_hand_avg(player_url, pitcher_hand)[1]
             }
             break
     
@@ -102,7 +119,7 @@ def scrape_batter_splits(pitcher_url, handedness):
     if len(tbodies) > 1:
         for row in tbodies[1].find_all('tr', class_='Table__TR Table__TR--sm Table__even'):
             cells = row.find_all('td')
-            if len(cells) == 13 and cells[0].text.strip() != "Totals":
+            if len(cells) == 13 and cells[0].text.strip() != "Totals" and float(cells[9].text.strip()) >= .250:
                 player_url = cells[0].find('a')['href']
                 prev_stats = batter_previous_games(player_url, handedness)
                 breakdown_data.append({
@@ -114,6 +131,7 @@ def scrape_batter_splits(pitcher_url, handedness):
                     "avg": cells[9].text.strip(),
                     "prevStats": prev_stats
                 })
+                
     
     return breakdown_data
 
@@ -141,8 +159,8 @@ def scrape_pitcher_splits(pitcher_url, i):
     }
 
     right_left_data = {
-        "vs_right": extract_table_data(soup, '11'),
-        "vs_left": extract_table_data(soup, '10')
+        "vs_right": extract_table_data(soup, '11', True),
+        "vs_left": extract_table_data(soup, '10', True)
     }
 
     return {
@@ -154,10 +172,13 @@ def scrape_pitcher_splits(pitcher_url, i):
         "handedness": handedness
     }
 
-def extract_table_data(soup, idx):
+def extract_table_data(soup, idx, avg=False):
     section = soup.select(f'tr.Table__TR.Table__TR--sm.Table__even[data-idx="{idx}"]')
     for row in section:
         cells = row.find_all('td')
         if cells and len(cells) > 1:
-            return cells[0].text.strip()
+            if avg:
+                return cells[12].text.strip()
+            else: 
+                return cells[0].text.strip()
     return "0.00"

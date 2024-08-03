@@ -12,7 +12,7 @@ def find_urls():
     today = datetime.today()
 
     # Uncomment the following line to scrape data for tomorrow
-    today = today + timedelta(days=1)
+    # today = today + timedelta(days=1)
 
     date = today.strftime('%Y%m%d')  
     

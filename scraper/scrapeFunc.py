@@ -64,8 +64,8 @@ def get_hand_avg(player_url, handedness):
             last_15_avg = cells_15[12].text.strip()
         else:
             last_15_avg = 0.0
-        finalValue = float(value) if value != "HR" else 0.2  # Assign 0.2 if the value is "HR"
-        final_15 = float(last_15_avg) if value != "HR" else 0.2  # Assign 0.2 if the value is "HR"
+        finalValue = 0.2 if value == "HR" or value == "AVG" else float(value)        
+        final_15 = 0.2 if last_15_avg == "HR" else float(last_15_avg)
         return [finalValue, final_15]
     else:
         return [0.0, 0.0]  # Default to 0.0 if cells are empty
@@ -119,7 +119,7 @@ def scrape_batter_splits(pitcher_url, handedness):
     if len(tbodies) > 1:
         for row in tbodies[1].find_all('tr', class_='Table__TR Table__TR--sm Table__even'):
             cells = row.find_all('td')
-            if len(cells) == 13 and cells[0].text.strip() != "Totals" and float(cells[9].text.strip()) >= .250:
+            if len(cells) == 13 and cells[0].text.strip() != "Totals" and float(cells[9].text.strip()) >= .230:
                 player_url = cells[0].find('a')['href']
                 prev_stats = batter_previous_games(player_url, handedness)
                 breakdown_data.append({

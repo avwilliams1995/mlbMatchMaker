@@ -11,13 +11,16 @@ import json
 
 # Retrieve the clear argument
 clear = sys.argv[1].lower() == 'true'
+tomorrow = sys.argv[2].lower() == 'true'
 
 
-def find_urls():
+def find_urls(tomorrow=False):
     today = datetime.today()
 
     # Uncomment the following line to scrape data for tomorrow
-    # today = today + timedelta(days=1)
+    if tomorrow:
+        today = today + timedelta(days=1)
+    
 
     date = today.strftime('%Y%m%d')  
     
@@ -203,7 +206,7 @@ def convert_to_float(value):
 
 
 if __name__ == '__main__':
-    urls = find_urls()
+    urls = find_urls(tomorrow)
     # scraped_data = scrape_with_cache(urls)
     scraped_data = scrape_with_cache(urls, clear)
     top_candidates = []

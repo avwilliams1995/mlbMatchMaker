@@ -1,38 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./App.css";
 import BatterTable from "./components/BatterTable";
-
-interface Team {
-  name: string;
-  golfer: string;
-  score: number | string;
-}
+import useFetchBatters from "./hooks/useFetchBatters";
+import Spinner from "./components/Spinner";
 
 function App() {
-  const [data, setData] = useState([]);
   const [clearData, setClearData] = useState(false);
+  const [getTomorrow, setGetTomorrow] = useState(false);
+  const [isTomorrowData, setIsTomorrowData] = useState(false);
+  const { data, error, isLoading, refetch } = useFetchBatters();
 
-  const fetchLeaderboard = async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:3001/api/scraper?clear=" + clearData
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      // console.log(response)
-      const data = await response.json();
-      console.log("data", data);
-
-      setData(data);
-    } catch (error) {
-      console.error("Error fetching leaderboard:", error);
+  console.log(data, isLoading, error);
+  const handleRefresh = () => {
+    console.log("in handle refresh");
+    if (getTomorrow && !isTomorrowData) {
+      refetch(true, true);
+      setIsTomorrowData(true);
+    } else {
+      refetch(clearData, false);
+      setIsTomorrowData(false);
     }
   };
-
-  useEffect(() => {
-    fetchLeaderboard();
-  }, []);
 
   return (
     <div className="App">
@@ -43,15 +31,24 @@ function App() {
           <input
             type="checkbox"
             checked={clearData}
-            onChange={(e) => setClearData(!clearData)}
+            onChange={(e) => setClearData(e.target.checked)}
+          />
+        </label>
+        <label>
+          Get Tomorrow's Data?
+          <input
+            type="checkbox"
+            checked={getTomorrow}
+            onChange={(e) => setGetTomorrow(e.target.checked)}
           />
         </label>
 
-        <button onClick={fetchLeaderboard}>
-          {data.length === 0 ? "Loading..." : "Refresh Data"}
+        <button onClick={handleRefresh}>
+          {isLoading ? "Scraping new data..." : "Refresh Data"}
         </button>
+        {isTomorrowData && !isLoading ? <p>Tomorrow's data:</p> : null}
         <div className="Leaderboard-table">
-          <BatterTable data={data}/>
+          {isLoading ? <Spinner /> : <BatterTable data={data} />}
         </div>
       </header>
     </div>

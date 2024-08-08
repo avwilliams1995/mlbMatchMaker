@@ -4,7 +4,6 @@
   text-align: center;
   background-color: #282c34;
   min-height: 100vh;
-  
 }
 
 .header {
@@ -13,14 +12,15 @@
   align-items: center;
   font-size: calc(10px + 2vmin);
   color: white;
-  margin-top: 20px
+  margin-top: 50px;
 }
 
 label {
-  font-size: calc(10px + 1vmin);
+  display: flex;
+  align-items: center;
+  font-size: calc(10px + 0.4vmin);
   margin-top: 10px;
 }
-
 
 .Leaderboard-table-container {
   display: flex;
@@ -31,29 +31,33 @@ label {
 .Leaderboard-table {
   width: 90vw;
   margin: 20px 0;
+  margin-top: 50px;
   border-collapse: collapse;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .Leaderboard-table table {
   border: 1px white solid;
 }
 
-.Leaderboard-table thead  {
+.Leaderboard-table thead {
   border: 1px white solid;
   font-size: calc(10px + 1vmin);
 }
 
-.Leaderboard-table thead th  {
+.Leaderboard-table thead th {
   font-size: calc(10px + 1vmin);
-  padding:10px
+  padding: 10px;
 }
-.Leaderboard-table tbody tr  {
+.Leaderboard-table tbody tr {
   border: 1px white solid;
 }
 
-.Leaderboard-table tbody td  {
-  padding:5px;
-  font-size: calc(10px + .5vmin);
+.Leaderboard-table tbody td {
+  padding: 5px;
+  font-size: calc(10px + 0.5vmin);
 }
 
 .Leaderboard-table tbody td a {
@@ -82,7 +86,7 @@ button {
 }
 
 button:hover {
-  background-color: #4CAF50;
+  background-color: #4caf50;
 }
 
 button:disabled {
@@ -94,4 +98,22 @@ button:active {
   transform: scale(0.95);
 }
 
+/* spinner */
+.spinner {
+  border: 8px solid #f3f3f3; /* Light grey */
+  border-top: 8px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 2s linear infinite;
+  align-self: center;
+}
 
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

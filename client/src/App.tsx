@@ -17,7 +17,7 @@ function App() {
       refetch(true, true);
       setIsTomorrowData(true);
     } else {
-      refetch(clearData, false);
+      refetch(true, false);
       setIsTomorrowData(false);
     }
   };
@@ -25,7 +25,7 @@ function App() {
   return (
     <div className="App">
       <header className="header">
-        <h1>Top Batters to Bet On Today</h1>
+        <h1>Top Batters</h1>
         <label>
           Clear Previous Data
           <input

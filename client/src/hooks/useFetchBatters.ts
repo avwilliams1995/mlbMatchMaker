@@ -15,6 +15,9 @@ function useFetchBatters() {
       const response = await fetch(
         `http://localhost:3001/api/scraper?clear=${clearData}&tomorrow=${getTomorrow}`
       );
+      if (!response.ok){
+        console.log(response)
+      }
 
       const data = await response.json();
       setData(data);

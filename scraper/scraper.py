@@ -25,6 +25,7 @@ def find_urls(tomorrow=False):
     date = today.strftime('%Y%m%d')  
     
     url = f"https://www.espn.com/mlb/scoreboard/_/date/{date}"
+    # print(url)
 
     headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
@@ -206,6 +207,7 @@ def convert_to_float(value):
 
 
 if __name__ == '__main__':
+    # print("Starting scraper with clear:", clear, "and tomorrow:", tomorrow)
     urls = find_urls(tomorrow)
     # scraped_data = scrape_with_cache(urls)
     scraped_data = scrape_with_cache(urls, clear)

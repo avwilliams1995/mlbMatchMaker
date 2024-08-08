@@ -12,8 +12,11 @@ const ApiController = {
 
     const pythonPath = path.join(__dirname, '../scraper/venv/bin/python3');
 
+    const clearCache = req.query.clear === 'true' ? 'true' : 'false';
+
+
     // Execute the Python script
-    execFile(pythonPath, [scriptPath], (error, stdout, stderr) => {
+    execFile(pythonPath, [scriptPath, clearCache], (error, stdout, stderr) => {
       if (error) {
         console.error('Error executing Python script:', error);
         return res.status(500).send('Internal Server Error');

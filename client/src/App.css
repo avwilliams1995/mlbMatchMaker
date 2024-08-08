@@ -2,27 +2,25 @@
 
 .App {
   text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-.App-header {
   background-color: #282c34;
   min-height: 100vh;
+  
+}
+
+.header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  margin-top: 20px
 }
 
-.App-link {
-  color: #61dafb;
+label {
+  font-size: calc(10px + 1vmin);
+  margin-top: 10px;
 }
+
 
 .Leaderboard-table-container {
   display: flex;
@@ -31,38 +29,35 @@
 }
 
 .Leaderboard-table {
-  width: 90%;
-  max-width: 1000px;
+  width: 90vw;
   margin: 20px 0;
   border-collapse: collapse;
 }
 
-.Leaderboard-table th, .Leaderboard-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
+.Leaderboard-table table {
+  border: 1px white solid;
 }
 
-.Leaderboard-table th {
-  background-color: #4CAF50;
-  color: white;
+.Leaderboard-table thead  {
+  border: 1px white solid;
+  font-size: calc(10px + 1vmin);
 }
 
-.Leaderboard-table td {
-  width: 33.33%;
+.Leaderboard-table thead th  {
+  font-size: calc(10px + 1vmin);
+  padding:10px
+}
+.Leaderboard-table tbody tr  {
+  border: 1px white solid;
 }
 
-.Leaderboard-table th {
-  width: 33.33%;
+.Leaderboard-table tbody td  {
+  padding:5px;
+  font-size: calc(10px + .5vmin);
 }
 
-.Leaderboard-table tr:nth-child(even) {
-  background-color: #f2f2f2;
-  color: black
-}
-
-.Leaderboard-table tr:hover {
-  background-color: #acaaaa;
+.Leaderboard-table tbody td a {
+  color: #61dafb;
 }
 
 h1 {
@@ -98,3 +93,5 @@ button:disabled {
 button:active {
   transform: scale(0.95);
 }
+
+

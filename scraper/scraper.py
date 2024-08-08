@@ -6,6 +6,11 @@ import os
 import time
 from datetime import datetime, timedelta
 from scrapeCache import scrape_with_cache
+import sys
+import json
+
+# Retrieve the clear argument
+clear = sys.argv[1].lower() == 'true'
 
 
 def find_urls():
@@ -199,8 +204,8 @@ def convert_to_float(value):
 
 if __name__ == '__main__':
     urls = find_urls()
-    scraped_data = scrape_with_cache(urls)
-    # scraped_data = scrape_with_cache(urls, True)
+    # scraped_data = scrape_with_cache(urls)
+    scraped_data = scrape_with_cache(urls, clear)
     top_candidates = []
     flattened_data = []
     current_players = []

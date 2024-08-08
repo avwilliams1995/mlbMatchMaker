@@ -2,19 +2,16 @@ import express from 'express';
 import cors from "cors";
 import router from "./router.js";
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
-const corsOptions = {
-  origin: 'https://golf-maker.vercel.app', // your frontend domain
-  optionsSuccessStatus: 200,
-};
 
-app.use(cors(corsOptions)); // Apply CORS middleware
+
+app.use(cors()); 
 app.use(express.json());
 
 app.use("/api", router);
 
-// Handles global errors v
+// Handles global errors 
 app.use((err, req, res, next) => {
   res.status(500).json({ message: err.message });
 });

@@ -20,7 +20,7 @@ def scrape_urls(urls):
         pitcher_elements = soup.select('div.Pitchers__Athlete a')
         pitcher_urls = [a['href'] for a in pitcher_elements]
 
-        print(f'Fetching pitchers for game {idx}/{len(urls)}...')
+        # print(f'Fetching pitchers for game {idx}/{len(urls)}...')
 
         pitcher_data = []
         for i, pitcher_url in enumerate(pitcher_urls):

@@ -6,7 +6,7 @@ router.get("/dailyFetch", (req, res) => {
   res.status(200).send("hello");
 });
 
-router.get("/scraper", ApiController.fetchData, (req, res) => {
+router.get("/scraper", ApiController.getTopBatters, (req, res) => {
   res.status(200).send(res.locals.data);
 });
 

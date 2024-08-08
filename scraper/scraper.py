@@ -19,15 +19,14 @@ def find_urls():
     url = f"https://www.espn.com/mlb/scoreboard/_/date/{date}"
 
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
-    }
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
+}
 
     # Send a GET request to the URL
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=10)
 
-    if response.status_code == 200:
-        print('Successfully fetched the webpage.')
-    else:
+
+    if response.status_code != 200:
         print(f'Failed to retrieve the webpage. Status code: {response.status_code}')
         exit()
 
@@ -268,7 +267,7 @@ if __name__ == '__main__':
                             top_candidates.append(obj)
                             current_players.append(batter['name'])
 
-    print('sorting data')
+    # print('sorting data')
     sorted_data = sorted(top_candidates, key=lambda x: calculate_weighted_score(x), reverse=True)
     sorted_flattened_data = sorted(flattened_data, key=lambda x: calculate_weighted_score(x, "others"), reverse=True)
     
@@ -277,34 +276,34 @@ if __name__ == '__main__':
         if player_name not in current_players:
             sorted_data.append(item)
             current_players.append(player_name)
-
+    print(json.dumps(sorted_data))
     # Print the sorted top candidates
-    print("Top batters sorted:")
-    headers = ['Batter Name', 'Ovr Avg', 'Pitcher vs_hand',  "vs_hand", "last_15", 'vs pitcher', 'Hits', 'At Bats', '2B', 'HR', 'Prev Hits', 'Game URL']
-    header_row = "{:<20} {:<15} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<30}".format(*headers)
-    print(header_row)
-    print("-" * len(header_row))
+    # print("Top batters sorted:")
+    # headers = ['Batter Name', 'Ovr Avg', 'Pitcher vs_hand',  "vs_hand", "last_15", 'vs pitcher', 'Hits', 'At Bats', '2B', 'HR', 'Prev Hits', 'Game URL']
+    # header_row = "{:<20} {:<15} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<30}".format(*headers)
+    # print(header_row)
+    # print("-" * len(header_row))
 
-    # Print each row of data
-    found = False
-    for item in sorted_data:
-        if item['batter_name'] not in top_batters and not found:
-            print(" ")
-            print('---------------------------------')
-            print(" ")
-            found = True
+    # # Print each row of data
+    # found = False
+    # for item in sorted_data:
+    #     if item['batter_name'] not in top_batters and not found:
+    #         print(" ")
+    #         print('---------------------------------')
+    #         print(" ")
+    #         found = True
             
-        print("{:<20} {:<15} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<30}".format(
-            item['batter_name'][0:18],
-            item['overall_avg'],
-            item['hand_avg'],
-            item["vs_hand"], 
-            item["last_15"],
-            item['avg'],
-            item['hits'],
-            item['at_bats'],
-            item['2b'],
-            item['home_runs'],
-            item['prevHits'],
-            item['game_url']
-))
+    #     print("{:<20} {:<15} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<30}".format(
+    #         item['batter_name'][0:18],
+    #         item['overall_avg'],
+    #         item['hand_avg'],
+    #         item["vs_hand"], 
+    #         item["last_15"],
+    #         item['avg'],
+    #         item['hits'],
+    #         item['at_bats'],
+    #         item['2b'],
+    #         item['home_runs'],
+    #         item['prevHits'],
+    #         item['game_url']
+    #     ))

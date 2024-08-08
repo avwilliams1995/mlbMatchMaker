@@ -64,10 +64,10 @@ def scrape_with_cache(urls, clear=False):
     if is_cache_valid() and not clear:
         cached_data = load_cache()
         if cached_data is not None:
-            print("Using cached data")
+            # print("Using cached data")
             return cached_data
     
-    print("Fetching fresh data")
+    # print("Fetching fresh data")
     scraped_data = scrape_urls(urls)
     save_cache(scraped_data)
     return scraped_data

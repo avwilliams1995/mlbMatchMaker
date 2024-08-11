@@ -69,6 +69,26 @@ def get_hand_avg(player_url, handedness):
         return [finalValue, final_15]
     else:
         return [0.0, 0.0]  # Default to 0.0 if cells are empty
+    
+
+def get_team(url):
+    response = requests.get(url, headers=HEADERS)
+    if response.status_code != 200:
+        print(f'Failed to retrieve the team url. Status code: {response.status_code}')
+        return ""
+
+    soup = BeautifulSoup(response.content, 'html.parser')
+    team_name_element = soup.find('div', class_='PlayerHeader__Team n8 mt3 mb4 flex items-center mt3 mb4 clr-gray-01')
+
+    if team_name_element:
+        # Find the 'li' element that contains the team name link
+        team_name = team_name_element.find('li', class_='truncate min-w-0').find('a').text
+        final_team = team_name.split(' ')[-1]
+        # print(f'Team name: {final_team}')
+        return final_team
+    else:
+        print('Team name element not found')
+        return ""
 
 
 def batter_previous_games(player_url, pitcher_hand):
@@ -86,6 +106,7 @@ def batter_previous_games(player_url, pitcher_hand):
         (item.find('div', class_='fw-medium clr-black').get_text(strip=True).split('/')[0]
          for item in bio_list_items if item.find('div', class_='ttu').get_text() == 'BAT/THR'), None)
 
+    team = get_team(player_url)
     rows = soup.find_all('tr', class_='Table__TR Table__TR--sm Table__even')
     game_stats = {}
 
@@ -94,6 +115,7 @@ def batter_previous_games(player_url, pitcher_hand):
         if len(cells) > 4 and '/' in cells[0].text.strip():
             game_stats = {
                 "player_avg": batting_average,
+                "team": team,
                 "date": cells[0].text.strip(),
                 "at_bats": cells[3].text.strip(),
                 "hits": cells[5].text.strip(),

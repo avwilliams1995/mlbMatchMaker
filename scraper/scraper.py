@@ -14,6 +14,7 @@ clear = sys.argv[1].lower() == 'true'
 tomorrow = sys.argv[2].lower() == 'true'
 
 
+
 def find_urls(tomorrow=False):
     today = datetime.today()
 
@@ -207,9 +208,8 @@ def convert_to_float(value):
 
 
 if __name__ == '__main__':
-    # print("Starting scraper with clear:", clear, "and tomorrow:", tomorrow)
+    print("Starting scraper with clear:", clear, "and tomorrow:", tomorrow)
     urls = find_urls(tomorrow)
-    # scraped_data = scrape_with_cache(urls)
     scraped_data = scrape_with_cache(urls, clear)
     top_candidates = []
     flattened_data = []
@@ -255,6 +255,7 @@ if __name__ == '__main__':
                         
                         obj = {
                             'batter_name': batter['name'],
+                            'team': batter["prevStats"]['team'],
                             'overall_avg': formatted_ovr_avg,
                             'avg': formatted_avg,
                             'hits': int(batter['hits']),
@@ -286,34 +287,34 @@ if __name__ == '__main__':
         if player_name not in current_players:
             sorted_data.append(item)
             current_players.append(player_name)
-    print(json.dumps(sorted_data))
-    # Print the sorted top candidates
-    # print("Top batters sorted:")
-    # headers = ['Batter Name', 'Ovr Avg', 'Pitcher vs_hand',  "vs_hand", "last_15", 'vs pitcher', 'Hits', 'At Bats', '2B', 'HR', 'Prev Hits', 'Game URL']
-    # header_row = "{:<20} {:<15} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<30}".format(*headers)
-    # print(header_row)
-    # print("-" * len(header_row))
+    # print(json.dumps(sorted_data))
 
-    # # Print each row of data
-    # found = False
-    # for item in sorted_data:
-    #     if item['batter_name'] not in top_batters and not found:
-    #         print(" ")
-    #         print('---------------------------------')
-    #         print(" ")
-    #         found = True
+    print("Top batters sorted:")
+    headers = ['Batter Name', 'Ovr Avg', 'Pitcher vs_hand',  "vs_hand", "last_15", 'vs pitcher', 'Hits', 'At Bats', '2B', 'HR', 'Prev Hits', 'Game URL']
+    header_row = "{:<30} {:<15} {:<20} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<15}".format(*headers)
+    print(header_row)
+    print("-" * len(header_row))
+
+    # Print each row of data
+    found = False
+    for item in sorted_data:
+        if item['batter_name'] not in top_batters and not found:
+            print(" ")
+            print('---------------------------------')
+            print(" ")
+            found = True
             
-    #     print("{:<20} {:<15} {:<15} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<30}".format(
-    #         item['batter_name'][0:18],
-    #         item['overall_avg'],
-    #         item['hand_avg'],
-    #         item["vs_hand"], 
-    #         item["last_15"],
-    #         item['avg'],
-    #         item['hits'],
-    #         item['at_bats'],
-    #         item['2b'],
-    #         item['home_runs'],
-    #         item['prevHits'],
-    #         item['game_url']
-    #     ))
+        print("{:<30} {:<15} {:<20} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<15}".format(
+            item['batter_name'][0:18] + " (" + item["team"] + ")",
+            item['overall_avg'],
+            item['hand_avg'],
+            item["vs_hand"], 
+            item["last_15"],
+            item['avg'],
+            item['hits'],
+            item['at_bats'],
+            item['2b'],
+            item['home_runs'],
+            item['prevHits'],
+            item['game_url']
+        ))

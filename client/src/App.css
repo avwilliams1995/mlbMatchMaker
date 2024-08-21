@@ -1,9 +1,10 @@
-/* App.css */
+/* 
 
 .App {
   text-align: center;
   background-color: #282c34;
   min-height: 100vh;
+  margin-bottom: 40px;
 }
 
 .header {
@@ -31,7 +32,7 @@ label {
 .Leaderboard-table {
   width: 90vw;
   /* margin: 10px 0; */
-  margin-top: 50px;
+  /* margin-top: 50px;
   border-collapse: collapse;
   display: flex;
   align-items: center;
@@ -99,9 +100,9 @@ button:active {
 }
 
 /* spinner */
-.spinner {
-  border: 8px solid #f3f3f3; /* Light grey */
-  border-top: 8px solid #3498db; /* Blue */
+/* .spinner {
+  border: 8px solid #f3f3f3; 
+  border-top: 8px solid #3498db; 
   border-radius: 50%;
   width: 60px;
   height: 60px;
@@ -116,4 +117,4 @@ button:active {
   100% {
     transform: rotate(360deg);
   }
-}
+} */

@@ -1,0 +1,76 @@
+.App {
+  text-align: center;
+  background-color: #282c34;
+  min-height: 100vh;
+  margin-bottom: 40px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+  margin-top: 50px;
+}
+
+label {
+  display: flex;
+  align-items: center;
+  font-size: calc(10px + 0.4vmin);
+  margin-top: 10px;
+}
+
+.Leaderboard-table-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.Leaderboard-table {
+  width: 90vw;
+  /* margin: 10px 0; */
+  margin-top: 50px;
+  border-collapse: collapse;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Leaderboard-table table {
+  border: 1px white solid;
+}
+
+.Leaderboard-table thead {
+  border: 1px white solid;
+  font-size: calc(10px + 1vmin);
+}
+
+.Leaderboard-table thead th {
+  font-size: calc(10px + 1vmin);
+  padding: 10px;
+}
+.Leaderboard-table tbody tr {
+  border: 1px white solid;
+}
+
+.Leaderboard-table tbody td {
+  padding: 5px;
+  font-size: calc(10px + 0.5vmin);
+}
+
+.Leaderboard-table tbody td a {
+  color: #61dafb;
+}
+
+h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  color: #61dafb;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+
+
+/* spinner */
+

@@ -1,7 +1,12 @@
 import React from 'react';
+import "../styles/Spinner.css"
 
-function Spinner() {
-  return (<div className="spinner"></div>);
+type SpinnerProps = {
+  size?: string
+}
+
+function Spinner({size = "60"}:SpinnerProps) {
+  return (<div className="spinner" style={{width: `${size}px`, height: `${size}px` }}></div>);
 }
 
 export default Spinner;

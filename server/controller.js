@@ -7,7 +7,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const ApiController = {
+  
   getTopBatters: (req, res) => {
+    console.log('in scraper')
     const scriptPath = path.join(__dirname, '../scraper/scraper.py');
 
     const pythonPath = path.join(__dirname, '../scraper/venv/bin/python3');
@@ -32,7 +34,7 @@ const ApiController = {
         // Parse the output from Python script
         
         const data = JSON.parse(stdout);
-        console.log(data)
+        // console.log(data)
         return res.status(200).json(data);
       } catch (parseError) {
         console.error('Error parsing JSON:', parseError);

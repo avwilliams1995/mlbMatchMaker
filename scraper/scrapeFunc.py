@@ -141,7 +141,7 @@ def scrape_batter_splits(pitcher_url, handedness):
     if len(tbodies) > 1:
         for row in tbodies[1].find_all('tr', class_='Table__TR Table__TR--sm Table__even'):
             cells = row.find_all('td')
-            if len(cells) == 13 and cells[0].text.strip() != "Totals" and float(cells[9].text.strip()) >= .230:
+            if len(cells) == 13 and cells[0].text.strip() != "Totals" and float(cells[9].text.strip()) >= .2:
                 player_url = cells[0].find('a')['href']
                 prev_stats = batter_previous_games(player_url, handedness)
                 breakdown_data.append({

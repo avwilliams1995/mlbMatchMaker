@@ -1,16 +1,22 @@
 // src/components/PrivateRoute.tsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { auth } from '../firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
+
 
 interface PrivateRouteProps {
   children: JSX.Element;
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const { currentUser } = useAuth();
+  const [user, loading] = useAuthState(auth);
 
-  return currentUser ? children : <Navigate to="/login" />;
+  if (loading) {
+    return <div>Loading...</div>; // Show a loading spinner or some placeholder while checking auth state
+  }
+
+  return user ? children : <Navigate to="/login" />;
 };
 
 export default PrivateRoute;

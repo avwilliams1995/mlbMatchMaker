@@ -1,9 +1,11 @@
 .spinner {
+  /* aspect-ratio: 1 / 1; */
+
   border: 8px solid #f3f3f3; /* Light grey */
   border-top: 8px solid #3498db; /* Blue */
-  border-radius: 50%;
+  border-radius: 50%; /* Ensures the element is circular */
   animation: spin 2s linear infinite;
-  align-self: center;
+  box-sizing: border-box; /* Ensures borders are included in the element's width and height */
 }
 
 @keyframes spin {

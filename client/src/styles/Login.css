@@ -1,0 +1,27 @@
+.login {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  height: 80vh;
+}
+
+.login form {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.login form input {
+  width: 20vw;
+  height: 3vh;
+  margin-bottom: 10px;
+}
+
+.button-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 12vw;
+}

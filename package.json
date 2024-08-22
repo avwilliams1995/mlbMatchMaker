@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "firebase": "^10.13.0",
+    "react-firebase-hooks": "^5.1.1",
     "react-scripts": "^5.0.1",
     "web-vitals": "^4.2.2"
   }

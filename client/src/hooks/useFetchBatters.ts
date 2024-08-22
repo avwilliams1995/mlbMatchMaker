@@ -1,9 +1,18 @@
 import { useState, useEffect } from "react";
 
-function useFetchBatters() {
+function useFetchBatters<T>(): {
+  data: T[];
+  error: null | string;
+  isLoading: boolean;
+  refetch: (
+    clearData: boolean,
+    getTomorrow: boolean,
+    signal?: AbortSignal
+  ) => void;
+} {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<null | string>(null);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<T[]>([]);
 
   const fetchTopBatters = async (
     clearData: boolean = false,
@@ -25,11 +34,11 @@ function useFetchBatters() {
         console.log(response);
       }
 
-      const data = await response.json();
+      const data: T[] = await response.json();
       setData(data);
-    } catch (err:any) {
+    } catch (err: any) {
       if (err.name === "AbortError") {
-        console.log("Fetch aborted"); 
+        console.log("Fetch aborted");
         return;
       }
       console.log("Error fetching top batters:" + err);

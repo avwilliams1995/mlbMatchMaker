@@ -1,9 +1,9 @@
 .App {
   display: flex;
-  align-items: center;
+  /* align-items: center; */
   justify-content: center;
   background-color: #282c34;
-  min-height: 100vh;
+  /* min-height: 100vh; */
   margin-bottom: 40px;
   width: 100vw;
 }
@@ -59,16 +59,18 @@
 }
 
 .Leaderboard-table thead th {
-  font-size: calc(10px + 1vmin);
+  font-size: calc(10px + .6vmin);
   padding: 10px;
+  text-align: center;
 }
 .Leaderboard-table tbody tr {
   border: 1px white solid;
 }
 
 .Leaderboard-table tbody td {
-  padding: 5px;
+  padding: 10px;
   font-size: calc(10px + 0.5vmin);
+  text-align: center;
 }
 
 .Leaderboard-table tbody td a {

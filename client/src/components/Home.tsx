@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import "../styles/Home.css";
 import BatterTable from "./BatterTable";
-import useFetchBatters from "../hooks/useFetchBatters";
+import useFetch from "../hooks/useFetchBatters";
 import Spinner from "./Spinner";
 import Button from "./Button";
 import { signOut } from "firebase/auth";
@@ -13,7 +13,7 @@ function Home() {
   const [clearData, setClearData] = useState(false);
   const [getTomorrow, setGetTomorrow] = useState(false);
   const [isTomorrowData, setIsTomorrowData] = useState(false);
-  const { data, error, isLoading, refetch } = useFetchBatters();
+  const { data, error, isLoading, refetch } = useFetch();
   const [searchQuery, setSearchQuery] = useState("");
   const { currentUser } = useAuth();
   console.log(data);

@@ -1,4 +1,4 @@
 requests
 beautifulsoup4
 pytz
-pickle
+charset_normalizer

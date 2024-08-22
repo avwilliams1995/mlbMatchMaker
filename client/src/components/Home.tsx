@@ -5,13 +5,16 @@ import useFetchBatters from "../hooks/useFetchBatters";
 import Spinner from "./Spinner";
 import Button from "./Button";
 import { signOut } from "firebase/auth";
-import { auth } from "../firebase"; // Make sure your firebase configuration is correctly imported
+import { auth } from "../firebase"; 
+import { useAuth } from "../context/AuthContext";
 
 function Home() {
   const [clearData, setClearData] = useState(false);
   const [getTomorrow, setGetTomorrow] = useState(false);
   const [isTomorrowData, setIsTomorrowData] = useState(false);
   const { data, error, isLoading, refetch } = useFetchBatters();
+  const {currentUser} = useAuth();
+
 
   const handleLogout = async () => {
     try {
@@ -55,11 +58,12 @@ function Home() {
             />
           </label>
         </div>
-
-        <Button onClick={handleRefresh}>
-          {isLoading ? "Scraping new data..." : "Refresh Data"}
-        </Button>
-        <Button onClick={handleLogout}>Log Out</Button>
+        <div id="buttons">
+          <Button onClick={handleRefresh}>
+            {isLoading ? "Scraping new data..." : "Refresh Data"}
+          </Button>
+          <Button onClick={handleLogout}>Log Out</Button>
+        </div>
         {isTomorrowData && !isLoading ? <p>Tomorrow's data:</p> : null}
         <div className="Leaderboard-table">
           {isLoading ? <Spinner /> : <BatterTable data={data} />}

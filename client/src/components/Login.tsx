@@ -13,6 +13,7 @@ import "../styles/Login.css";
 import Button from "./Button";
 import Spinner from "./Spinner";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Login() {
   const userRef = useRef<HTMLInputElement | null>(null);
@@ -23,6 +24,7 @@ function Login() {
   const [resend, setResend] = useState(false);
   const [forgotPassword, setForgotPassword] = useState(false);
   const navigate = useNavigate();
+  const { setCurrentUser } = useAuth(); 
 
   const handleLoginSubmit = async () => {
     setIsLoading(true);
@@ -41,6 +43,7 @@ function Login() {
       );
       const user = userCredential.user;
       if (user.emailVerified) {
+        setCurrentUser({ email: user.email || "" });
         navigate("/");
       } else {
         setError("Please verify your email before logging in.");

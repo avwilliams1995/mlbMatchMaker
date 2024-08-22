@@ -79,5 +79,9 @@ h1 {
 
 
 
-/* spinner */
-
+#buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 15vw;
+}

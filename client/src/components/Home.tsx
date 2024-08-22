@@ -1,25 +1,27 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import "../styles/Home.css";
 import BatterTable from "./BatterTable";
 import useFetchBatters from "../hooks/useFetchBatters";
 import Spinner from "./Spinner";
 import Button from "./Button";
 import { signOut } from "firebase/auth";
-import { auth } from "../firebase"; 
+import { auth } from "../firebase";
 import { useAuth } from "../context/AuthContext";
+import Searchbar from "./Searchbar";
 
 function Home() {
   const [clearData, setClearData] = useState(false);
   const [getTomorrow, setGetTomorrow] = useState(false);
   const [isTomorrowData, setIsTomorrowData] = useState(false);
   const { data, error, isLoading, refetch } = useFetchBatters();
-  const {currentUser} = useAuth();
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const { currentUser } = useAuth();
+  console.log(data);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      window.location.href = "/login"; 
+      window.location.href = "/login";
     } catch (error) {
       console.error("Error logging out: ", error);
     }
@@ -27,14 +29,31 @@ function Home() {
 
   const handleRefresh = () => {
     console.log("in handle refresh");
+    const controller = new AbortController();
     if (getTomorrow && !isTomorrowData) {
-      refetch(true, true);
+      refetch(true, true, controller.signal);
       setIsTomorrowData(true);
     } else {
-      refetch(true, false);
+      refetch(true, false, controller.signal);
       setIsTomorrowData(false);
     }
+    
   };
+
+  const handleFilter = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    return data.filter((batter: any) => {
+      if (
+        batter.batter_name.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
+        return batter;
+      }
+    });
+  }, [data, searchQuery]);
 
   return (
     <div className="App">
@@ -64,9 +83,10 @@ function Home() {
           </Button>
           <Button onClick={handleLogout}>Log Out</Button>
         </div>
+        <Searchbar handleSearch={handleFilter} />
         {isTomorrowData && !isLoading ? <p>Tomorrow's data:</p> : null}
         <div className="Leaderboard-table">
-          {isLoading ? <Spinner /> : <BatterTable data={data} />}
+          {isLoading ? <Spinner /> : <BatterTable data={filteredData} />}
         </div>
       </header>
     </div>

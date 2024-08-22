@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useReducer } from "react";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -6,7 +6,6 @@ import {
   sendPasswordResetEmail,
   setPersistence,
   browserLocalPersistence,
-  signOut,
 } from "firebase/auth";
 import { auth } from "../firebase";
 import "../styles/Login.css";
@@ -15,27 +14,47 @@ import Spinner from "./Spinner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+const initialState = {
+  isLogin: true,
+  isLoading: false,
+  error: null,
+  resend: false,
+  forgotPassword: false,
+};
+
+function reducer(state: any, action: any) {
+  switch (action.type) {
+    case "SET_LOADING":
+      return { ...state, isLoading: action.payload };
+    case "SET_ERROR":
+      return { ...state, error: action.payload };
+    case "SET_RESEND":
+      return { ...state, resend: action.payload };
+    case "TOGGLE_LOGIN_MODE":
+      return { ...state, isLogin: !state.isLogin };
+    case "TOGGLE_FORGOT_PASSWORD":
+      return { ...state, forgotPassword: !state.forgotPassword };
+    default:
+      return state;
+  }
+}
+
 function Login() {
   const userRef = useRef<HTMLInputElement | null>(null);
   const pwRef = useRef<HTMLInputElement | null>(null);
-  const [isLogin, setIsLogin] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [resend, setResend] = useState(false);
-  const [forgotPassword, setForgotPassword] = useState(false);
+  const [state, dispatch] = useReducer(reducer, initialState);
   const navigate = useNavigate();
-  const { setCurrentUser } = useAuth(); 
+  const { setCurrentUser } = useAuth();
 
   const handleLoginSubmit = async () => {
-    setIsLoading(true);
-    setError(null);
-    setResend(false);
+    dispatch({ type: "SET_LOADING", payload: true });
+    dispatch({ type: "SET_ERROR", payload: null });
+    dispatch({ type: "SET_RESEND", payload: false });
     const username = userRef.current?.value || "";
     const pw = pwRef.current?.value || "";
 
     try {
       await setPersistence(auth, browserLocalPersistence);
-
       const userCredential = await signInWithEmailAndPassword(
         auth,
         username,
@@ -46,23 +65,27 @@ function Login() {
         setCurrentUser({ email: user.email || "" });
         navigate("/");
       } else {
-        setError("Please verify your email before logging in.");
-        setResend(true);
+        dispatch({
+          type: "SET_ERROR",
+          payload: "Please verify your email before logging in.",
+        });
+        dispatch({ type: "SET_RESEND", payload: true });
       }
     } catch (err) {
       console.log(err);
-      setError(
-        "Failed to log in. Please check your credentials and try again."
-      );
+      dispatch({
+        type: "SET_ERROR",
+        payload:
+          "Failed to log in. Please check your credentials and try again.",
+      });
     } finally {
-      setIsLoading(false);
+      dispatch({ type: "SET_LOADING", payload: false });
     }
-    return;
   };
 
   const handleSignupSubmit = async () => {
-    setIsLoading(true);
-    setError(null);
+    dispatch({ type: "SET_LOADING", payload: true });
+    dispatch({ type: "SET_ERROR", payload: null });
     const username = userRef.current?.value || "";
     const pw = pwRef.current?.value || "";
 
@@ -73,74 +96,60 @@ function Login() {
         pw
       );
       const user = userCredential.user;
-
-      // Send email verification
       await sendEmailVerification(user);
-
-      setIsLogin(true);
+      dispatch({ type: "TOGGLE_LOGIN_MODE" });
       alert(
         "Sign up successful! Please check your email to verify your account before logging in."
       );
     } catch (err: any) {
       console.log(err.code);
+      let errorMessage =
+        "Failed to sign up. Please check your credentials and try again.";
       if (err.code === "auth/invalid-email") {
-        setError("Invalid email address. Please enter a valid email.");
+        errorMessage = "Invalid email address. Please enter a valid email.";
       } else if (err.code === "auth/email-already-in-use") {
-        setError(
-          "This email is already in use. Please use a different email or log in."
-        );
+        errorMessage =
+          "This email is already in use. Please use a different email or log in.";
       } else if (err.code === "auth/weak-password") {
-        setError("Password is too weak. Please enter a stronger password.");
-      } else {
-        setError(
-          "Failed to sign up. Please check your credentials and try again."
-        );
+        errorMessage =
+          "Password is too weak. Please enter a stronger password.";
       }
+      dispatch({ type: "SET_ERROR", payload: errorMessage });
     } finally {
-      setIsLoading(false);
+      dispatch({ type: "SET_LOADING", payload: false });
     }
-    return;
-  };
-
-  const toggleAuthMode = () => {
-    setIsLogin(!isLogin);
-  };
-
-  const toggleForgotPassword = () => {
-    setForgotPassword(!forgotPassword);
   };
 
   const handleResendVerification = async () => {
-    setError(null);
+    dispatch({ type: "SET_ERROR", payload: null });
     if (auth.currentUser) {
       await sendEmailVerification(auth.currentUser);
       alert("Verification email sent! Please check your inbox.");
-      setIsLogin(true);
-      setResend(false);
+      dispatch({ type: "TOGGLE_LOGIN_MODE" });
+      dispatch({ type: "SET_RESEND", payload: false });
     }
   };
 
   const handlePasswordReset = async () => {
-    setError(null);
+    dispatch({ type: "SET_ERROR", payload: null });
     const email = userRef.current?.value || "";
 
     try {
       await sendPasswordResetEmail(auth, email);
       alert("Password reset email sent! Check your inbox.");
-      setForgotPassword(false);
-      setIsLogin(true);
+      dispatch({ type: "TOGGLE_FORGOT_PASSWORD" });
+      dispatch({ type: "TOGGLE_LOGIN_MODE" });
     } catch (err: any) {
+      let errorMessage =
+        "Failed to send password reset email. Please try again later.";
       if (err.code === "auth/invalid-email") {
-        setError("Invalid email address. Please enter a valid email.");
+        errorMessage = "Invalid email address. Please enter a valid email.";
       } else if (err.code === "auth/user-not-found") {
-        setError("No user found with this email address.");
-      } else {
-        setError(
-          "Failed to send password reset email. Please try again later."
-        );
+        errorMessage = "No user found with this email address.";
       }
+      dispatch({ type: "SET_ERROR", payload: errorMessage });
     } finally {
-      setIsLoading(false); // Ensure loading state is reset
+      dispatch({ type: "SET_LOADING", payload: false });
     }
   };
 
@@ -149,16 +158,16 @@ function Login() {
       <h1>Welcome to MLB Match Maker!</h1>
       <form onSubmit={(e) => e.preventDefault()}>
         <label>Email:</label>
-        <input type="text" ref={userRef} disabled={isLoading} />
-        {!forgotPassword ? (
+        <input type="text" ref={userRef} disabled={state.isLoading} />
+        {!state.forgotPassword ? (
           <>
             <label>Password:</label>
-            <input type="password" ref={pwRef} disabled={isLoading} />
+            <input type="password" ref={pwRef} disabled={state.isLoading} />
           </>
         ) : null}
       </form>
-      {error && <div style={{ color: "red" }}>{error}</div>}
-      {resend && (
+      {state.error && <div style={{ color: "red" }}>{state.error}</div>}
+      {state.resend && (
         <span
           onClick={handleResendVerification}
           style={{
@@ -171,18 +180,20 @@ function Login() {
           Resend Verification Email
         </span>
       )}
-      {forgotPassword ? (
+      {state.forgotPassword ? (
         <Button onClick={handlePasswordReset}>
-          {isLoading ? <Spinner size={30} /> : "Submit"}
+          {state.isLoading ? <Spinner size={30} /> : "Submit"}
         </Button>
       ) : (
-        <Button onClick={isLogin ? handleLoginSubmit : handleSignupSubmit}>
-          {isLoading ? <Spinner size={30} /> : "Submit"}
+        <Button
+          onClick={state.isLogin ? handleLoginSubmit : handleSignupSubmit}
+        >
+          {state.isLoading ? <Spinner size={30} /> : "Submit"}
         </Button>
       )}
 
       <p>
-        {isLogin ? (
+        {state.isLogin ? (
           <div
             style={{
               display: "flex",
@@ -191,7 +202,7 @@ function Login() {
             }}
           >
             <span
-              onClick={toggleAuthMode}
+              onClick={() => dispatch({ type: "TOGGLE_LOGIN_MODE" })}
               style={{
                 cursor: "pointer",
                 fontSize: ".8rem",
@@ -201,9 +212,9 @@ function Login() {
             >
               Don't have an account? Sign up
             </span>
-            {!forgotPassword ? (
+            {!state.forgotPassword ? (
               <span
-                onClick={toggleForgotPassword}
+                onClick={() => dispatch({ type: "TOGGLE_FORGOT_PASSWORD" })}
                 style={{
                   cursor: "pointer",
                   fontSize: ".8rem",
@@ -214,7 +225,7 @@ function Login() {
               </span>
             ) : (
               <span
-                onClick={toggleForgotPassword}
+                onClick={() => dispatch({ type: "TOGGLE_FORGOT_PASSWORD" })}
                 style={{
                   cursor: "pointer",
                   fontSize: ".8rem",
@@ -227,7 +238,7 @@ function Login() {
           </div>
         ) : (
           <span
-            onClick={toggleAuthMode}
+            onClick={() => dispatch({ type: "TOGGLE_LOGIN_MODE" })}
             style={{
               cursor: "pointer",
               fontSize: ".8rem",

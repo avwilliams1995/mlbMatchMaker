@@ -49,25 +49,22 @@ def load_cache():
         print("Cache file is corrupted or empty. Fetching fresh data.")
         return None
 
-def save_cache(data):
+def save_cache(data, scrape_date=None):
     """Save the cache data and update the cache date."""
     if os.path.exists(CACHE_FILE):
         os.remove(CACHE_FILE) 
     with open(CACHE_FILE, "wb") as f:
         pickle.dump(data, f)
 
-    # Update cache date in cache_date.json
-    save_json_data(CACHE_DATE_FILE, {"date": get_today_date()})
+    # Save the actual scrape date, not just "today"
+    save_json_data(CACHE_DATE_FILE, {"date": scrape_date or get_today_date()})
 
-def scrape_with_cache(urls, clear=False):
-    """Scrape data with cache functionality."""
+def scrape_with_cache(urls, clear=False, scrape_date=None):
     if is_cache_valid() and not clear:
         cached_data = load_cache()
         if cached_data is not None:
-            # print("Using cached data")
             return cached_data
-    
-    # print("Fetching fresh data")
+
     scraped_data = scrape_urls(urls)
-    save_cache(scraped_data)
+    save_cache(scraped_data, scrape_date)
     return scraped_data

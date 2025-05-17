@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import "../styles/Home.css";
 import BatterTable from "./BatterTable";
 import useFetch from "../hooks/useFetchBatters";
@@ -16,6 +16,7 @@ function Home() {
   const { data, error, isLoading, refetch } = useFetch();
   const [searchQuery, setSearchQuery] = useState("");
   const { currentUser } = useAuth();
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
   console.log(data);
 
   const handleLogout = async () => {
@@ -29,7 +30,15 @@ function Home() {
 
   const handleRefresh = () => {
     console.log("in handle refresh");
+  
+    // Abort previous request if still active
+    if (abortController) {
+      abortController.abort();
+    }
+  
     const controller = new AbortController();
+    setAbortController(controller);
+  
     if (getTomorrow && !isTomorrowData) {
       refetch(true, true, controller.signal);
       setIsTomorrowData(true);
@@ -37,7 +46,6 @@ function Home() {
       refetch(true, false, controller.signal);
       setIsTomorrowData(false);
     }
-    
   };
 
   const handleFilter = (query: string) => {
@@ -54,6 +62,19 @@ function Home() {
       }
     });
   }, [data, searchQuery]);
+
+  const handleCancel = () => {
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null); 
+    }
+  };
+
+  useEffect(() => {
+    if (!isLoading) {
+      setAbortController(null);
+    }
+  }, [isLoading]);
 
   return (
     <div className="App">
@@ -78,9 +99,9 @@ function Home() {
           </label>
         </div>
         <div id="buttons">
-          <Button onClick={handleRefresh}>
-            {isLoading ? "Scraping new data..." : "Refresh Data"}
-          </Button>
+        <Button onClick={isLoading ? handleCancel : handleRefresh}>
+            {isLoading ? "Cancel" : "Refresh Data"}
+        </Button>
           <Button onClick={handleLogout}>Log Out</Button>
         </div>
         <Searchbar handleSearch={handleFilter} />

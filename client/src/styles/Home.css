@@ -16,7 +16,9 @@
   font-size: calc(10px + 2vmin);
   color: white;
   margin-top: 50px;
-  width: 20vw;
+  max-width: 800px;
+  width: 100%;
+  padding: 0 20px;    
 }
 
 #boxes label {

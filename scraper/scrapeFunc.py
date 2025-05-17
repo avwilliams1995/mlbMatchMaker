@@ -37,13 +37,13 @@ def get_hand_avg(player_url, handedness):
     response = requests.get(splits_url, headers=HEADERS)
     if response.status_code != 200:
         print(f'Failed to retrieve the get_hand_avg url. Status code: {response.status_code}')
-        return 0.0  # Default to 0.0 if the request fails
+        return [0.0, 0.0]  # Default to 0.0 if the request fails
 
     soup = BeautifulSoup(response.content, 'html.parser')
     table = soup.find('table', {'class': 'Table Table--align-right'})
     if not table:
         print('Could not find the relevant table.')
-        return 0.0  # Default to 0.0 if the table is not found
+        return [0.0, 0.0]  # Default to 0.0 if the table is not found
 
     rows = table.find_all('tr')
     scrape_row = rows[4] if handedness == "Right" else rows[3]

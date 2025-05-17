@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", category=Warning)
+
 import requests
 from scrapeFunc import scrape_urls
 from bs4 import BeautifulSoup
@@ -9,9 +12,60 @@ from scrapeCache import scrape_with_cache
 import sys
 import json
 
-# Retrieve the clear argument
-clear = sys.argv[1].lower() == 'true'
-tomorrow = sys.argv[2].lower() == 'true'
+# top batters in league based on batting avg
+top_batters = [
+    "Aaron Judge",
+    "Freddie Freeman",
+    "Jacob Wilson",
+    "Paul Goldschmidt",
+    "Manny Machado",
+    "Jonathan Aranda",
+    "Will Smith",
+    "Steven Kwan",
+    "CJ Abrams",
+    "Alex Bregman",
+    "Jeremy Pena",
+    "Brendan Donovan",
+    "Bobby Witt Jr.",
+    "Pete Alonso",
+    "Shohei Ohtani",
+    "Fernando Tatis Jr.",
+    "Josh Smith",
+    "Kyle Stowers",
+    "Trea Turner",
+    "Josh Naylor",
+    "Francisco Lindor",
+    "Gavin Lux",
+    "Maikel Garcia",
+    "Kerry Carpenter",
+    "Jose Ramirez",
+    "Vladimir Guerrero Jr.",
+    "Jake Meyers",
+    "Rhys Hoskins",
+    "Geraldo Perdomo",
+    "Andy Pages",
+    "Hunter Goodman",
+    "Gavin Sheets",
+    "Bo Bichette",
+    "Brice Turang",
+    "Gleyber Torres",
+    "Heliot Ramos",
+    "Austin Riley",
+    "Luis Arraez",
+    "Jung Hoo Lee",
+    "Nick Castellanos",
+    "Keibert Ruiz",
+    "Zach McKinstry",
+    "Corbin Carroll",
+    "Pete Crow-Armstrong",
+    "Joey Bart",
+    "Tyler Soderstrom",
+    "Mike Yastrzemski",
+    "George Springer",
+    "Wilyer Abreu",
+    "Victor Scott II"
+]
+
 
 
 def find_urls(tomorrow=False):
@@ -54,58 +108,7 @@ def find_urls(tomorrow=False):
     return game_urls
 
     
-top_batters  = [
-  "Bobby Witt Jr.",
-  "Aaron Judge",
-  "Vladimir Guerrero Jr.",
-  "Steven Kwan",
-  "Marcell Ozuna",
-  "Yordan Alvarez",
-  "Yainer Diaz",
-  "Luis Arraez",
-  "Juan Soto",
-  "Jose Altuve",
-  "Ketel Marte",
-  "Alec Bohm",
-  "Rafael Devers",
-  "Luis Garcia Jr.",
-  "Jarren Duran",
-  "Jackson Merrill",
-  "Shohei Ohtani",
-  "Freddie Freeman",
-  "Jurickson Profar",
-  "William Contreras",
-  "Gunnar Henderson",
-  "Brent Rooker",
-  "Bryan Reynolds",
-  "Brendan Rodgers",
-  "Masyn Winn",
-  "Alec Burleson",
-  "Jeremy Pena",
-  "Yandy Diaz",
-  "Salvador Perez",
-  "Jose Ramirez",
-  "Jackson Chourio",
-  "Lourdes Gurriel Jr.",
-  "Bryce Harper",
-  "Cody Bellinger",
-  "Ezequiel Tovar",
-  "Nolan Arenado",
-  "Brenton Doyle",
-  "Corey Seager",
-  "Jordan Westburg",
-  "Manny Machado",
-  "Brendan Donovan",
-  "Francisco Lindor",
-  "Josh Smith",
-  "Vinnie Pasquantino",
-  "Ryan Mountcastle",
-  "Ceddanne Rafaela",
-  "Seiya Suzuki",
-  "Sal Frelick",
-  "Teoscar Hernandez",
-  "Julio Rodriguez"
-];
+
  
 
     
@@ -208,10 +211,20 @@ def convert_to_float(value):
 
 
 if __name__ == '__main__':
-    # print("Starting scraper with clear:", clear, "and tomorrow:", tomorrow)
-    urls = find_urls(tomorrow)
-    # print('urls')
-    scraped_data = scrape_with_cache(urls, clear)
+    # Safe argument defaults
+    clear = len(sys.argv) > 1 and sys.argv[1].lower() == 'true'
+    tomorrow = len(sys.argv) > 2 and sys.argv[2].lower() == 'true'
+
+    # Calculate target date
+    target_date = datetime.today()
+    if tomorrow:
+        target_date += timedelta(days=1)
+
+    scrape_date = target_date.strftime('%Y-%m-%d')     # for saving in cache_date.json
+    espn_url_date = target_date.strftime('%Y%m%d')      # for ESPN URL formatting
+
+    urls = find_urls(espn_url_date)
+    scraped_data = scrape_with_cache(urls, clear, scrape_date)
     top_candidates = []
     flattened_data = []
     current_players = []
@@ -281,10 +294,13 @@ if __name__ == '__main__':
     # print('sorting data')
     sorted_data = sorted(top_candidates, key=lambda x: calculate_weighted_score(x), reverse=True)
     sorted_flattened_data = sorted(flattened_data, key=lambda x: calculate_weighted_score(x, "others"), reverse=True)
+    for i, batter in enumerate(sorted_data):
+        batter["rank"] = i + 1
     
     for item in sorted_flattened_data[:15]:
         player_name = item['batter_name']
         if player_name not in current_players:
+            item["rank"] = len(sorted_data) + 1
             sorted_data.append(item)
             current_players.append(player_name)
     print(json.dumps(sorted_data))

@@ -13,6 +13,8 @@ const ApiController = {
 
     const clearCache = req.query.clear === "true" ? "true" : "false";
     const getTomorrow = req.query.tomorrow === "true" ? "true" : "false";
+    console.log("clearCache:", clearCache);
+    console.log("getTomorrow:", getTomorrow);
 
     // Execute the Python script directly with the correct Python interpreter
     execFile(
@@ -26,7 +28,7 @@ const ApiController = {
 
         if (stderr) {
           console.error("Error output from Python script:", stderr);
-          return res.status(500).send("Internal Server Error");
+          return res.status(500).send(stderr);
         }
 
         try {

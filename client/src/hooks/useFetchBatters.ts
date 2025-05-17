@@ -31,7 +31,8 @@ function useFetchBatters<T>(): {
         { signal: effectiveSignal }
       );
       if (!response.ok) {
-        console.log(response);
+        const text = await response.text(); // read plain text error
+        throw new Error(`Server error: ${response.status} - ${text}`);
       }
 
       const data: T[] = await response.json();

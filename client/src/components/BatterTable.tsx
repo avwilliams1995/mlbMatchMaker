@@ -5,6 +5,7 @@ const BatterTable = ({ data }: any) => {
     <table style={{ width: "100%", borderCollapse: "collapse" }}>
       <thead>
         <tr>
+          <th>#</th>
           <th>Batter Name</th>
           <th>Overall Avg</th>
           <th>Batter Last 15</th>
@@ -22,7 +23,8 @@ const BatterTable = ({ data }: any) => {
       <tbody>
         {data.map((item: any, index: number) => (
           <tr key={index}>
-            <td>{item.batter_name + " ("+ item.team + ")"}</td>
+            <td style={{ textAlign: "center" }}>{item.rank}</td>           
+             <td>{`${item.batter_name} (${item.team})`}</td>
             <td>{item.overall_avg}</td>
             <td>{item.last_15}</td>
             <td>{item.hand_avg}</td>

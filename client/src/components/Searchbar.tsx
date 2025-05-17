@@ -37,7 +37,7 @@ useEffect(() => {
       type="text"
       ref={inputRef}
       onChange={handleDebounce}
-      placeholder={placeholderStages[placeholderIndex]} // Dynamic!
+      placeholder={placeholderStages[placeholderIndex]} 
       />
   );
 };

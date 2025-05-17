@@ -50,7 +50,7 @@ def get_hand_avg(player_url, handedness):
     rows_15 = soup.find_all('tr', class_='Table__TR Table__TR--sm Table__even')
     index = 0
     for row in rows_15:
-        if row.find('td', class_='Table__TD').text.strip() == "Last 15 Days":
+        if row.find('td', class_='Table__TD').text.strip() == "Last 7 Days":
             index = int(row['data-idx'])
             break
 
@@ -61,11 +61,11 @@ def get_hand_avg(player_url, handedness):
     if cells:
         value = cells[12].text.strip()
         if index!= 0:
-            last_15_avg = cells_15[12].text.strip()
+            last_7_avg = cells_15[12].text.strip()
         else:
-            last_15_avg = 0.0
+            last_7_avg = 0.0
         finalValue = 0.2 if value == "HR" or value == "AVG" else float(value)        
-        final_15 = 0.2 if last_15_avg == "HR" else float(last_15_avg)
+        final_15 = 0.2 if last_7_avg == "HR" else float(last_7_avg)
         return [finalValue, final_15]
     else:
         return [0.0, 0.0]  # Default to 0.0 if cells are empty
@@ -121,7 +121,7 @@ def batter_previous_games(player_url, pitcher_hand):
                 "hits": cells[5].text.strip(),
                 "hand": handedness,
                 "vs_hand": get_hand_avg(player_url, pitcher_hand)[0],
-                "last_15": get_hand_avg(player_url, pitcher_hand)[1]
+                "last_7": get_hand_avg(player_url, pitcher_hand)[1]
             }
             break
     

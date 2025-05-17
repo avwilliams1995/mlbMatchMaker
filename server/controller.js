@@ -34,6 +34,7 @@ const ApiController = {
         try {
           // Parse the output from Python script
           const data = JSON.parse(stdout);
+          console.log("finished data:", data);
           return res.status(200).json(data);
         } catch (parseError) {
           console.error("Error parsing JSON:", parseError);

@@ -8,7 +8,7 @@ const BatterTable = ({ data }: any) => {
           <th>#</th>
           <th>Batter Name</th>
           <th>Overall Avg</th>
-          <th>Batter Last 15</th>
+          <th>Batter Last 7</th>
           <th>Pitcher Avg vs Hand</th>
           <th>Batter Avg vs Hand</th>
           <th>Avg vs Pitcher</th>
@@ -16,7 +16,7 @@ const BatterTable = ({ data }: any) => {
           <th>AB</th>
           <th>2B</th>
           <th>HR</th>
-          <th>Batter Prev Game Hits</th>
+          <th>Previous Game Hits</th>
           <th>URL</th>
         </tr>
       </thead>
@@ -26,7 +26,7 @@ const BatterTable = ({ data }: any) => {
             <td style={{ textAlign: "center" }}>{item.rank}</td>           
              <td>{`${item.batter_name} (${item.team})`}</td>
             <td>{item.overall_avg}</td>
-            <td>{item.last_15}</td>
+            <td>{item.last_7}</td>
             <td>{item.hand_avg}</td>
             <td>{item.vs_hand}</td>
             <td>{item.avg}</td>

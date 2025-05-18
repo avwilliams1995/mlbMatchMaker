@@ -117,7 +117,7 @@ function Home() {
             <div style={{ width: "100%", backgroundColor: "#ddd", height: "14px", marginTop: "6px", borderRadius: "4px", margin: "10px 0" }}>
               <div
                 style={{
-                  width: `${Math.min(Math.floor(timer / 8.4) * 7, 100)}%`,
+                  width: `${Math.min(Math.floor(timer / 5) * 5, 95)}%`,
                   backgroundColor: "#4caf50",
                   height: "100%",
                   transition: "width 0.3s ease-in-out",

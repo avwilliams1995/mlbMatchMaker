@@ -10,9 +10,10 @@ function useFetchBatters<T>(): {
     signal?: AbortSignal
   ) => void;
 } {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<null | string>(null);
   const [data, setData] = useState<T[]>([]);
+  const [initialFetch, setInitialFetch] = useState(true);
 
   const fetchTopBatters = async (
     clearData: boolean = false,
@@ -50,7 +51,10 @@ function useFetchBatters<T>(): {
   };
   useEffect(() => {
     const controller = new AbortController();
-    fetchTopBatters(false, false, controller.signal);
+    if (!initialFetch) {
+      fetchTopBatters(false, false, controller.signal);
+    }
+    setInitialFetch(false);
 
     return () => {
       controller.abort();

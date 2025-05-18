@@ -31,6 +31,7 @@ def find_urls(tomorrow=False):
         today += timedelta(days=1)
 
     date = today.strftime('%Y%m%d')  
+    # print(f"Scraping data for date: {date}")
     url = f"https://www.espn.com/mlb/scoreboard/_/date/{date}"
 
     headers = {
@@ -55,19 +56,19 @@ def find_urls(tomorrow=False):
 
 def scale_score(type, value):
     if type == "avg_against":
-        if value >= .7: return 10
-        elif value >= .5: return 8.5
-        elif value >= .375: return 7
-        elif value >= .3: return 5
+        if value >= .6: return 10
+        elif value >= .450: return 8.5
+        elif value >= .325: return 7
+        elif value >= .275: return 5
         elif value >= .25: return 3
         else: return 1
     elif type == "atbats":
-        if value >= 25: return 10
+        if value >= 30: return 10
         elif value >= 20: return 8.5
         elif value >= 15: return 7
         elif value >= 10: return 5
-        elif value >= 5: return 4
-        else: return 0
+        elif value >= 5: return 3
+        else: return 1
     elif type == "avg_ovr":
         if value >= .310: return 10
         elif value >= .3: return 9
@@ -85,7 +86,7 @@ def scale_score(type, value):
 
 def calculate_weighted_score(obj, type="top"):
     try:
-        prev_hits = 3 if obj['prevHits'] == "-" else (10 if obj['prevHits'] == 0 else 5 if obj['prevHits'] == 1 else 2)
+        prev_hits = 3 if obj['prevHits'] == "-" else (10 if obj['prevHits'] == 0 else 5 if obj['prevHits'] == 1 else 1)
         avg = scale_score("avg_against", float(obj['avg']))
         at_bats = scale_score("atbats", float(obj['at_bats']))
         hand_avg = scale_score("hand_avg", convert_to_float(obj['hand_avg']))
@@ -94,18 +95,18 @@ def calculate_weighted_score(obj, type="top"):
         last_7 = scale_score("avg_against", float(obj['last_7']))
 
         if type == "top":
-            return 0.3 * prev_hits + 0.1 * avg + 0.2 * at_bats + 0.1 * hand_avg + 0.1 * overall_avg + 0.2 * last_7
+            return 0.3 * prev_hits + 0.2 * avg + 0.2 * at_bats + 0.05 * hand_avg + 0.15 * last_7
         else:
-            return 0.2 * prev_hits + 0.2 * avg + 0.2 * at_bats + 0.15 * overall_avg + 0.05 * vs_hand + 0.15 * last_7
+            return 0.2 * prev_hits + 0.2 * avg + 0.2 * at_bats + 0.1 * overall_avg + 0.05 * vs_hand + 0.25 * last_7
     except Exception as e:
         print(f"Error in calculate_weighted_score: {e}")
         print(f"Object causing error: {obj}")
         raise
 
 def convert_to_float(value):
-    if value == "HR": return .2
+    if value == "HR": return .200
     try: return float(value)
-    except ValueError: return .2
+    except ValueError: return .200
 
 if __name__ == '__main__':
     clear = len(sys.argv) > 1 and sys.argv[1].lower() == 'true'
@@ -118,7 +119,7 @@ if __name__ == '__main__':
     scrape_date = target_date.strftime('%Y-%m-%d')
     espn_url_date = target_date.strftime('%Y%m%d')
 
-    urls = find_urls(espn_url_date)
+    urls = find_urls(tomorrow)
     scraped_data = scrape_with_cache(urls, clear, scrape_date)
     top_candidates = []
     flattened_data = []
@@ -158,15 +159,25 @@ if __name__ == '__main__':
                             top_candidates.append(obj)
                             current_players.append(batter['name'])
 
-    sorted_data = sorted(top_candidates, key=lambda x: calculate_weighted_score(x), reverse=True)
-    sorted_flattened_data = sorted(flattened_data, key=lambda x: calculate_weighted_score(x, "others"), reverse=True)
-    for i, batter in enumerate(sorted_data):
-        batter["rank"] = i + 1
+    sorted_top = sorted(
+        top_candidates,
+        key=lambda x: calculate_weighted_score(x),
+        reverse=True
+    )[:10]
+    sorted_flattened_data = sorted(flattened_data, key=lambda x: calculate_weighted_score(x, "others"), reverse=True)[:31]
 
-    for item in sorted_flattened_data[:15]:
-        if item['batter_name'] not in current_players:
-            item["rank"] = len(sorted_data) + 1
-            sorted_data.append(item)
-            current_players.append(item['batter_name'])
 
-    print(json.dumps(sorted_data))
+    for idx, batter in enumerate(sorted_top, start=1):
+        batter["rank"] = idx
+
+    final_list = list(sorted_top)
+    for item in sorted_flattened_data:
+        if len(final_list) >= 31:
+            break
+        name = item["batter_name"]
+        if name not in current_players:
+            item["rank"] = len(final_list) + 1
+            final_list.append(item)
+            current_players.append(name)
+
+    print(json.dumps(final_list))

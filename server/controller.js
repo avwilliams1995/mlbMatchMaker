@@ -8,11 +8,15 @@ const __dirname = path.dirname(__filename);
 const ApiController = {
   getTopBatters: (req, res) => {
     console.log("in scraper");
+    const getTomorrow = req.query.tomorrow === "true";
+    const targetDate = new Date();
+    if (getTomorrow) targetDate.setDate(targetDate.getDate() + 1);
+    const dateStr = targetDate.toISOString().slice(0, 10);
+    console.log(`[scraper] getTomorrow=${getTomorrow}, pulling data for date ${dateStr}`);
     const scriptPath = path.join(__dirname, "../scraper/scraper.py");
     const pythonPath = path.join(__dirname, "../scraper/venv/bin/python3");
 
     const clearCache = req.query.clear === "true" ? "true" : "false";
-    const getTomorrow = req.query.tomorrow === "true" ? "true" : "false";
     console.log("clearCache:", clearCache);
     console.log("getTomorrow:", getTomorrow);
 

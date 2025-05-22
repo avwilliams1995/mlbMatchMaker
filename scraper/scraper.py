@@ -95,7 +95,7 @@ def calculate_weighted_score(obj, type="top"):
         last_7 = scale_score("avg_against", float(obj['last_7']))
 
         if type == "top":
-            return 0.3 * prev_hits + 0.2 * avg + 0.2 * at_bats + 0.05 * hand_avg + 0.15 * last_7
+            return 0.35 * prev_hits + 0.15 * avg + 0.15 * at_bats + 0.1 * hand_avg + 0.15 * last_7
         else:
             return 0.2 * prev_hits + 0.2 * avg + 0.2 * at_bats + 0.1 * overall_avg + 0.05 * vs_hand + 0.25 * last_7
     except Exception as e:

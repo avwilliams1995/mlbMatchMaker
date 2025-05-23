@@ -94,3 +94,7 @@ h1 {
   justify-content: space-between;
   width: 15vw;
 }
+
+#buttons button {
+  font-size: calc(10px + 0.4vmin);
+}

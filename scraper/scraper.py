@@ -86,18 +86,37 @@ def scale_score(type, value):
 
 def calculate_weighted_score(obj, type="top"):
     try:
-        prev_hits = 3 if obj['prevHits'] == "-" else (10 if obj['prevHits'] == 0 else 5 if obj['prevHits'] == 1 else 1)
-        avg = scale_score("avg_against", float(obj['avg']))
-        at_bats = scale_score("atbats", float(obj['at_bats']))
-        hand_avg = scale_score("hand_avg", convert_to_float(obj['hand_avg']))
-        overall_avg = scale_score("avg_ovr", float(obj['overall_avg']))
-        vs_hand = scale_score("avg_against", float(obj['vs_hand']))
-        last_7 = scale_score("avg_against", float(obj['last_7']))
+        # previous hits as before
+        prev_hits = 3 if obj['prevHits'] == "-" else (
+            10 if obj['prevHits'] == 0 else 
+            5  if obj['prevHits'] == 1 else 1
+        )
+
+        # combine avg_against and at_bats into one opponent score
+        raw_avg   = scale_score("avg_against", float(obj['avg']))
+        raw_ab    = scale_score("atbats",    float(obj['at_bats']))
+        opp_score = raw_avg * (raw_ab / 10.0)
+
+        hand_avg    = scale_score("hand_avg",    convert_to_float(obj['hand_avg']))
+        overall_avg = scale_score("avg_ovr",     float(obj['overall_avg']))
+        vs_hand     = scale_score("avg_against", float(obj['vs_hand']))
+        last_7      = scale_score("avg_against", float(obj['last_7']))
 
         if type == "top":
-            return 0.35 * prev_hits + 0.15 * avg + 0.15 * at_bats + 0.1 * hand_avg + 0.15 * last_7
+            return (
+                0.40 * prev_hits +
+                0.20 * opp_score  +
+                0.15 * hand_avg   +
+                0.25 * last_7
+            )
         else:
-            return 0.2 * prev_hits + 0.2 * avg + 0.2 * at_bats + 0.1 * overall_avg + 0.05 * vs_hand + 0.25 * last_7
+            return (
+                0.30 * prev_hits   +
+                0.25 * opp_score   +
+                0.10 * overall_avg +
+                0.1 * vs_hand     +
+                0.25 * last_7
+            )
     except Exception as e:
         print(f"Error in calculate_weighted_score: {e}")
         print(f"Object causing error: {obj}")
@@ -163,8 +182,8 @@ if __name__ == '__main__':
         top_candidates,
         key=lambda x: calculate_weighted_score(x),
         reverse=True
-    )[:10]
-    sorted_flattened_data = sorted(flattened_data, key=lambda x: calculate_weighted_score(x, "others"), reverse=True)[:31]
+    )[:15]
+    sorted_flattened_data = sorted(flattened_data, key=lambda x: calculate_weighted_score(x, "others"), reverse=True)[:50]
 
 
     for idx, batter in enumerate(sorted_top, start=1):
@@ -172,7 +191,7 @@ if __name__ == '__main__':
 
     final_list = list(sorted_top)
     for item in sorted_flattened_data:
-        if len(final_list) >= 31:
+        if len(final_list) >= 50:
             break
         name = item["batter_name"]
         if name not in current_players:

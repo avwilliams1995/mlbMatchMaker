@@ -11,10 +11,10 @@ const BatterTable = ({ data }: any) => {
           <th>Batter Last 7</th>
           <th>Pitcher Avg vs Hand</th>
           <th>Batter Avg vs Hand</th>
+          <th>Pitcher ERA</th>
           <th>Avg vs Pitcher</th>
           <th>Hits</th>
           <th>AB</th>
-          <th>2B</th>
           <th>HR</th>
           <th>Previous Game Hits</th>
           <th>URL</th>
@@ -25,16 +25,16 @@ const BatterTable = ({ data }: any) => {
           <tr key={index}>
             <td style={{ textAlign: "center" }}>{item.rank}</td>           
              <td>{`${item.batter_name} (${item.team})`}</td>
-            <td>{item.overall_avg}</td>
+            <td>{item.overall_avg}</td>  
             <td>{item.last_7}</td>
-            <td>{item.hand_avg}</td>
-            <td>{item.vs_hand}</td>
-            <td>{item.avg}</td>
-            <td>{item.hits}</td>
-            <td>{item.at_bats}</td>
-            <td>{item["2b"]}</td>
-            <td>{item.home_runs}</td>
-            <td>{item.prevHits}</td>
+            <td>{item.hand_avg}</td> 
+            <td>{item.vs_hand}</td> 
+            <td>{item.opp_era}</td> 
+            <td>{item.avg}</td> 
+            <td>{item.hits}</td>   
+            <td>{item.at_bats}</td> 
+            <td>{item.home_runs}</td> 
+            <td>{item.prevHits}</td> 
             <td>
               <a href={item.game_url} target="_blank" rel="noopener noreferrer">
                 Link

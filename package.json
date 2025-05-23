@@ -12,7 +12,7 @@
     ]
   },
   "scripts": {
-    "server": "nodemon server/server.js --watch scraper"
+    "dev": "nodemon server/server.js --watch scraper"
   },
   "dependencies": {
     "firebase": "^10.13.0",
